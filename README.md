@@ -3,9 +3,7 @@
 ## Description:
 Hackers and kiddie scripts are always scanning servers for looking open ports. If they find one (for example your SSH port), they will try to break it. This script helps to avoid portscanning on Linux systems with built in firewall (iptables).
 
-## How to use it
-
-###### Installation
+## Installation
 
 1. Download the script from GitHub:
 >*wget https://github.com/Feriman22/portscan-protection/archive/master.zip*
@@ -29,14 +27,25 @@ The `uninstall` process remove the script from /root folder and remove the cront
 
 The `verify` process check the crontab entry, script location, execute permission, ipset/iptables commands and firewall rules.
 
-###### Daily use
+## Daily use
 
 Nothing to do! Just install the script and enjoy the protection!
+
+## How to update
+
+If you want to update the script, just overwrite it in /root folder or run it with the "Install" option. It will overwrite the installed version.
+
+In the future I will implement the auto-update function.
+
+## The future
+
+- Implement auto update function
 
 ## Changelog
 
 >13-04-2020
 - Initial release
+
 
 
 ## Do not forget
