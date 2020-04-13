@@ -40,5 +40,5 @@ Nothing to do! Just install the script and enjoy the protection!
 
 ## Do not forget
 
-If you enjoy it, **please donate me via PayPal** and I can improve & fix bugs or develop another useful scripts!
+If you found it useful, **please donate me via PayPal** and I can improve & fix bugs or develop another useful scripts!
 [paypal.me/BajzaFerenc](https://www.paypal.me/BajzaFerenc)
