@@ -7,8 +7,14 @@ Hackers and kiddie scripts are always scanning servers for looking open ports. I
 
 ###### Installation
 
-Run the script like this way:
-./portscan-protection.sh
+1. Download the script from GitHub:
+>*wget https://github.com/Feriman22/portscan-protection/archive/master.zip*
+2. Unzip the file:
+>*unzip master.zip*
+3. Add execute permission:
+>*chmod +x ./portscan-protection-master/portscan-protection.sh*
+4. Run the script:
+>*sudo ./portscan-protection-master/portscan-protection.sh*
 
 You have 3 options:
 1. Install the script
