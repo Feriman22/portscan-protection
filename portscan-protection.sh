@@ -1,6 +1,7 @@
 #!/bin/bash
 SCRIPTNAME="Portscan Protection"
-SCRIPTLOCATION="/root/portscan-protection.sh"
+SCRIPTLOCATION="/root/portscan-protection-test.sh"
+CRONLOCATION="/etc/cron.d/portscan-protection"
 
 if [ "$1" != "cron" ]; then
 	# Coloring
@@ -10,19 +11,14 @@ if [ "$1" != "cron" ]; then
 	NC='\033[0m' # No Color
 
 	echo -e "$SCRIPTNAME\n"
-	echo -e "Author: Feriman\n"
-	echo -e "URL: https://github.com/Feriman22/portscan-protection\n"
-	echo -e "Version: 13-04-2020\n"
-	echo -e "${GR}If you found it useful, please donate me via PayPal: https://www.paypal.me/BajzaFerenc${NC}\n"
+	echo -e "Author: Feriman"
+	echo -e "URL: https://github.com/Feriman22/portscan-protection"
+	echo -e "Version: 13-04-2020"
+	echo -e "${GR}If you found it useful, please donate via PayPal: https://paypal.me/BajzaFerenc${NC}\n"
 fi
 
 # Check the root permission
 [ ! $(id -u) = 0 ] && echo -e "${RED}Run as root!${NC} Exiting...\n" && exit
-
-for i in 1 2 3
-do
-	[ -f $i ] && rm -f $i
-done
 
 # Enter in this section only if run by cron - It will do the magic
 if [ "$1" == "cron" ]; then
@@ -49,24 +45,25 @@ if [ "$1" == "cron" ]; then
 	if [ $(iptables -S | grep -c "\-A INPUT \-m state \-\-state NEW \-j SET \-\-add\-set scanned_ports src,dst") -lt 1 ]; then
 		iptables -A INPUT -m state --state NEW -j SET --add-set scanned_ports src,dst
 	fi
-	
+
 	# Exit, because it run by cron
 	exit
 fi
 
+# Call the menu
 PS3='Please enter your choice: '
 options=("Install" "Uninstall" "Verify" "Quit")
 select opt in "${options[@]}"
 do
     case $opt in
         "Install")
-			touch 1 && break
+			OPT=1 && break
             ;;
         "Uninstall")
-			touch 2 && break
+			OPT=2 && break
             ;;
         "Verify")
-			touch 3 && break
+			OPT=3 && break
             ;;
         "Quit")
             break
@@ -79,7 +76,8 @@ done
 ##
 ########### Choosed the Install ###########
 ##
-if [ -f 1 ]; then
+
+if [ "$OPT" == "1" ]; then
 
 	#
 	### Start Installation ###
@@ -87,36 +85,37 @@ if [ -f 1 ]; then
 
 	# Start count the time of install process
 	SECONDS=0
-	
+
 	# Check the ipset command
-	! which ipset > /dev/null && echo -e "ipset command ${RED}not found${NC}. Exiting...\n" && exit || echo -e "ipset command found. ${GR}OK.${NC}\n"
+	! which ipset > /dev/null && echo -e "\nipset command ${RED}not found${NC}. Exiting..." && exit || echo -e "\nipset command found. ${GR}OK.${NC}"
 
 	# Check the iptables command
-	! which iptables > /dev/null && echo -e "iptables command ${RED}not found${NC}. Exiting...\n" && exit || echo -e "iptables command found. ${GR}OK.${NC}\n"
-	
+	! which iptables > /dev/null && echo -e "iptables command ${RED}not found${NC}. Exiting...\n" && exit || echo -e "iptables command found. ${GR}OK.${NC}"
+
 	# Set crontab rule if doesn't exists yet
-	[ $(crontab -l | grep -c "$SCRIPTLOCATION") -lt "1" ] && (crontab -l 2>/dev/null; echo "@reboot sleep 30 && $SCRIPTLOCATION") | crontab - && echo -e "Crontab entry has been set. ${GR}OK.${NC}\n" || echo -e "Crontab entry ${YL}already set.${NC}\n"
-	
+	[ ! -f "$CRONLOCATION" ] && echo -e "# $SCRIPTNAME - Set at $(date)\n@reboot sleep 30 && $SCRIPTLOCATION" > "$CRONLOCATION" && echo -e "Crontab entry has been set. ${GR}OK.${NC}" || echo -e "Crontab entry ${YL}already set.${NC}"
+
 	# Copy the script to $SCRIPTLOCATION and then remove from original place
-	if [ "$(dirname "$0")/$(basename "$0")" != "$SCRIPTLOCATION" ]; then
-		/bin/cp -rf "$(dirname "$0")/$(basename "$0")" /root && chmod 700 "$SCRIPTLOCATION" && echo -e "This script has been copied to $SCRIPTLOCATION ${GR}OK.${NC}\n" && rm $(dirname "$0")/$(basename "$0") && echo -e "The script removed itself. ${GR}OK.${NC}\n"
+	if [ "$(pwd)/$(basename "$0")" != "$SCRIPTLOCATION" ]; then
+		/bin/cp -rf "$0" /root && chmod 700 "$SCRIPTLOCATION" && echo -e "This script has been copied to $SCRIPTLOCATION ${GR}OK.${NC}" && rm "$0" && echo -e "The script removed itself from $0. ${GR}OK.${NC}\n"
 	else
-		echo -e "The script already copied to destination or has been updated.\n"
+		echo -e "The script already copied to destination or has been updated. Nothing to do. ${GR}OK.${NC}\n"
 	fi
-	
+
 	# First "cron like" run to activate the iptable rules
 	$SCRIPTLOCATION cron
 
 	# Happy ending.
-	ELAPSED="Elapsed: $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec"
-	echo -e "${GR}Done.${NC} Full install time was $ELAPSED"
+	echo -e "${GR}Done.${NC} Full install time was $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec"
+
 fi
 
 
 ##
 ########### Choosed the Uninstall ###########
 ##
-if [ -f 2 ]; then
+
+if [ "$OPT" == "2" ]; then
 	loop=true;
 	while $loop; do
 		printf "${RED}UNINSTALL${NC} $SCRIPTNAME on $(hostname).\n"
@@ -127,54 +126,57 @@ if [ -f 2 ]; then
 			for i in {5..1}; do echo $i && sleep 1; done
 		elif [ "$var1" == 'n' ]; then
 			echo "Okay, exit."
-			rm 2 && exit 1
+			exit
 		else
 			echo "Enter a valid response Y or n";
 			loop=true;
 		fi
 	done
-	
+
 	#
 	### Starting Uninstall ###
 	#
 
 	# Remove crontab entry
-	if [ $(crontab -l | grep -c "$SCRIPTLOCATION") -gt 0 ]; then
-		sed -i '\/root\/portscan-protection.sh/d' /var/spool/cron/crontabs/root
-		echo -e "Crontab entry removed. ${GR}OK.${NC}\n"
+	if [ -f "$CRONLOCATION" ]; then
+		rm -r "$CRONLOCATION"
+		echo -e "\nCrontab entry removed. ${GR}OK.${NC}"
 	else
-		echo -e "Crontab entry is not found. ${GR}OK.${NC}\n"
+		echo -e "\nCrontab entry is not found. ${GR}OK.${NC}"
 	fi
-	
+
 	# Remove the script
 	[ -f "$SCRIPTLOCATION" ] && rm -f "$SCRIPTLOCATION" && echo -e "The script removed. ${GR}OK.${NC}\n" || echo -e "The script is not found. ${GR}OK.${NC}\n"
+
 fi
 
 
 ##
 ########### Choosed the Verify ###########
 ##
-if [ -f 3 ]; then
+
+if [ "$OPT" == "3" ]; then
 
 	# Crontab verify
-	[ $(crontab -l | grep -c "$SCRIPTLOCATION") -lt 1 ] && echo -e "Crontab entry is ${RED}not found${NC}\n" || echo -e "Crontab entry found. ${GR}OK.${NC}\n"
-	
+	[ ! -f "$CRONLOCATION" ] && echo -e "\nCrontab entry is ${RED}not found.${NC}" || echo -e "\nCrontab entry found. ${GR}OK.${NC}"
+
 	# Verify script location
 	if [ -f "$SCRIPTLOCATION" ]; then
-		echo -e "Script found. ${GR}OK.${NC}\n"
-		
+		echo -e "Script found. ${GR}OK.${NC}"
+
 		# Verify execute permission
-		[ -x "$SCRIPTLOCATION" ] && echo -e "Script is executable. ${GR}OK.${NC}\n" || echo -e "Execute permission is ${RED}missing${NC}. Fix it by run: chmod +x $SCRIPTLOCATION\n"
-		
+		[ -x "$SCRIPTLOCATION" ] && echo -e "Script is executable. ${GR}OK.${NC}" || echo -e "Execute permission is ${RED}missing.${NC} Fix it by run: chmod +x $SCRIPTLOCATION"
+
 	else
-		echo -e "Script ${RED}not found${NC}.\n"
+		echo -e "Script ${RED}not found.${NC}"
 	fi
 
 	# Check the ipset command
-	! which ipset > /dev/null && echo -e "ipset command ${RED}not found${NC}\n" || echo -e "ipset command found. ${GR}OK.${NC}\n"
-	
+	! which ipset > /dev/null && echo -e "ipset command ${RED}not found.${NC}" || echo -e "ipset command found. ${GR}OK.${NC}"
+
 	# Check the iptables command
-	! which iptables > /dev/null && echo -e "iptables command ${RED}not found${NC}\n" || echo -e "iptables command found. ${GR}OK.${NC}\n"
-	
+	! which iptables > /dev/null && echo -e "iptables command ${RED}not found${NC}" || echo -e "iptables command found. ${GR}OK.${NC}"
+
 	[ $(ipset list | grep -c port_scanners) -gt 0 ] && [ $(ipset list | grep -c scanned_ports) -gt 0 ] && echo -e "iptables rules have been configured. ${GR}OK.${NC}\n" || echo -e "iptables rules are ${RED}not configured${NC}\n"
+
 fi
