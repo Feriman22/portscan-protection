@@ -39,13 +39,20 @@ In the future I will implement the auto-update function.
 
 ## The future
 
+- Remove iptable rules at uninstall (without reboot)
+- Set parameters for auto select menu
 - Implement auto update function
 
 ## Changelog
 
+>14-04-2020
+- Use variables for menu selection instead of touch temp files
+- Insert cron entry in /etc/cron.d folder instead of main cron file
+- Code review & cleanup
+- Small bugs fixed
+
 >13-04-2020
 - Initial release
-
 
 ## Do not forget
 
