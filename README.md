@@ -16,10 +16,11 @@ Hackers and kiddie scripts are always scanning servers for looking open ports. I
 4. Run the script:
 >*sudo ./portscan-protection-master/portscan-protection.sh*
 
-You have 3 options:
+You have 4 options:
 1. Install the script
 2. Uninstall the script
 3. Verify
+4. Quit
 
 The `install` process will copy the script in /root folder, then insert itself in the crontab. It will run on every startup, so your server will be protected at all time.
 
