@@ -20,7 +20,7 @@ You have 4 options:
 3. Verify
 4. Quit
 
-The `install` process will copy the script in /root folder, then insert itself in the crontab. It will run on every startup, so your server will be protected at all time.
+The `install` process will copy the script in /root folder, then insert itself in the crontab. It will run once now and on every startup, so your server will be protected at all time.
 
 The `uninstall` process remove the script from /root folder and remove the crontab entry as well.
 **WARNING!** You cannot run this script again after this step from /root folder!
@@ -45,7 +45,6 @@ In the future I will implement the auto-update function.
 
 >13-04-2020
 - Initial release
-
 
 
 ## Do not forget
