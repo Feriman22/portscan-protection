@@ -1,6 +1,6 @@
 #!/bin/bash
 SCRIPTNAME="Portscan Protection"
-SCRIPTLOCATION="/root/portscan-protection-test.sh"
+SCRIPTLOCATION="/usr/local/sbin/portscan-protection.sh"
 CRONLOCATION="/etc/cron.d/portscan-protection"
 
 if [ "$1" != "cron" ]; then
@@ -13,7 +13,7 @@ if [ "$1" != "cron" ]; then
 	echo -e "$SCRIPTNAME\n"
 	echo -e "Author: Feriman"
 	echo -e "URL: https://github.com/Feriman22/portscan-protection"
-	echo -e "Version: 13-04-2020"
+	echo -e "Version: 14-04-2020"
 	echo -e "${GR}If you found it useful, please donate via PayPal: https://paypal.me/BajzaFerenc${NC}\n"
 fi
 
@@ -30,19 +30,19 @@ if [ "$1" == "cron" ]; then
 		ipset create scanned_ports hash:ip,port family inet hashsize 32768 maxelem 65536 timeout 60
 	fi
 
-	if [ $(iptables -S | grep -c "\-A INPUT \-m state \-\-state INVALID \-j DROP") -lt 1 ]; then
+	if [ $(iptables -S | grep -cF -- "-A INPUT -m state --state INVALID -j DROP") -lt 1 ]; then
 		iptables -A INPUT -m state --state INVALID -j DROP
 	fi
 
-	if [ $(iptables -S | grep -c "\-A INPUT \-m state \-\-state NEW \-m set ! \-\-match\-set scanned_ports src,dst \-m hashlimit \-\-hashlimit\-above 1/hour \-\-hashlimit\-burst 5 \-\-hashlimit\-mode srcip \-\-hashlimit\-name portscan \-\-hashlimit\-htable\-expire 10000 \-j SET \-\-add\-set port_scanners src \-\-exist") -lt 1 ]; then
+	if [ $(iptables -S | grep -cF -- "-A INPUT -m state --state NEW -m set ! --match-set scanned_ports src,dst -m hashlimit --hashlimit-above 1/hour --hashlimit-burst 5 --hashlimit-mode srcip --hashlimit-name portscan --hashlimit-htable-expire 10000 -j SET --add-set port_scanners src --exist") -lt 1 ]; then
 		iptables -A INPUT -m state --state NEW -m set ! --match-set scanned_ports src,dst -m hashlimit --hashlimit-above 1/hour --hashlimit-burst 5 --hashlimit-mode srcip --hashlimit-name portscan --hashlimit-htable-expire 10000 -j SET --add-set port_scanners src --exist
 	fi
 
-	if [ $(iptables -S | grep -c "\-A INPUT \-m state \-\-state NEW \-m set \-\-match\-set port_scanners src \-j DROP") -lt 1 ]; then
+	if [ $(iptables -S | grep -cF -- "-A INPUT -m state --state NEW -m set --match-set port_scanners src -j DROP") -lt 1 ]; then
 		iptables -A INPUT -m state --state NEW -m set --match-set port_scanners src -j DROP
 	fi
 
-	if [ $(iptables -S | grep -c "\-A INPUT \-m state \-\-state NEW \-j SET \-\-add\-set scanned_ports src,dst") -lt 1 ]; then
+	if [ $(iptables -S | grep -cF -- "-A INPUT -m state --state NEW -j SET --add-set scanned_ports src,dst") -lt 1 ]; then
 		iptables -A INPUT -m state --state NEW -j SET --add-set scanned_ports src,dst
 	fi
 
@@ -68,7 +68,7 @@ do
         "Quit")
             break
             ;;
-        *) echo "invalid option $REPLY";;
+        *) echo "Invalid option $REPLY";;
     esac
 done
 
@@ -87,7 +87,7 @@ if [ "$OPT" == "1" ]; then
 	SECONDS=0
 
 	# Check the ipset command
-	! which ipset > /dev/null && echo -e "\nipset command ${RED}not found${NC}. Exiting..." && exit || echo -e "\nipset command found. ${GR}OK.${NC}"
+	! which ipset > /dev/null && echo -e "\nipset command ${RED}not found${NC}. Exiting...\n" && exit || echo -e "\nipset command found. ${GR}OK.${NC}"
 
 	# Check the iptables command
 	! which iptables > /dev/null && echo -e "iptables command ${RED}not found${NC}. Exiting...\n" && exit || echo -e "iptables command found. ${GR}OK.${NC}"
@@ -97,17 +97,16 @@ if [ "$OPT" == "1" ]; then
 
 	# Copy the script to $SCRIPTLOCATION and then remove from original place
 	if [ "$(pwd)/$(basename "$0")" != "$SCRIPTLOCATION" ]; then
-		/bin/cp -rf "$0" /root && chmod 700 "$SCRIPTLOCATION" && echo -e "This script has been copied to $SCRIPTLOCATION ${GR}OK.${NC}" && rm "$0" && echo -e "The script removed itself from $0. ${GR}OK.${NC}\n"
+		/bin/cp -rf "$0" /usr/local/sbin && chmod 700 "$SCRIPTLOCATION" && echo -e "This script has been copied to $SCRIPTLOCATION ${GR}OK.${NC}" && rm "$0" && echo -e "The script removed itself from $0. ${GR}OK.${NC}\n"
 	else
 		echo -e "The script already copied to destination or has been updated. Nothing to do. ${GR}OK.${NC}\n"
 	fi
 
 	# First "cron like" run to activate the iptable rules
-	$SCRIPTLOCATION cron
+	$SCRIPTLOCATION cron && echo -e "iptable rules have been activated. You are protected! ${GR}OK.${NC}\n"
 
 	# Happy ending.
 	echo -e "${GR}Done.${NC} Full install time was $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec"
-
 fi
 
 
@@ -147,7 +146,6 @@ if [ "$OPT" == "2" ]; then
 
 	# Remove the script
 	[ -f "$SCRIPTLOCATION" ] && rm -f "$SCRIPTLOCATION" && echo -e "The script removed. ${GR}OK.${NC}\n" || echo -e "The script is not found. ${GR}OK.${NC}\n"
-
 fi
 
 
@@ -177,6 +175,5 @@ if [ "$OPT" == "3" ]; then
 	# Check the iptables command
 	! which iptables > /dev/null && echo -e "iptables command ${RED}not found${NC}" || echo -e "iptables command found. ${GR}OK.${NC}"
 
-	[ $(ipset list | grep -c port_scanners) -gt 0 ] && [ $(ipset list | grep -c scanned_ports) -gt 0 ] && echo -e "iptables rules have been configured. ${GR}OK.${NC}\n" || echo -e "iptables rules are ${RED}not configured${NC}\n"
-
+	[ $(ipset list | grep -c port_scanners) -gt 0 ] && [ $(ipset list | grep -c scanned_ports) -gt 0 ] && echo -e "iptables rules have been configured. You are protected! ${GR}OK.${NC}\n" || echo -e "iptables rules are ${RED}not configured!${NC}\n"
 fi
