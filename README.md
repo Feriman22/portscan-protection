@@ -27,7 +27,7 @@ The `install` process will copy the script in /root folder, then insert itself i
 The `uninstall` process remove the script from /root folder and remove the crontab entry as well.
 **WARNING!** You cannot run this script again after this step from /root folder!
 
-The `verify` process check the crontab entry, script location, execute permission, iptables command and firewall rules.
+The `verify` process check the crontab entry, script location, execute permission, ipset/iptables commands and firewall rules.
 
 ###### Daily use
 
