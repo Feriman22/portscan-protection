@@ -1,6 +1,6 @@
-# portscan-protection
+# Portscan Protection (Linux)
 
-## Description:
+## Description
 Hackers and kiddie scripts are always scanning servers for looking open ports. If they find one (for example your SSH port), they will try to break it. This script helps to avoid portscanning on Linux systems with built in firewall (iptables).
 
 ## Installation
