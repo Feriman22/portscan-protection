@@ -15,8 +15,8 @@ Hackers and kiddie scripts are always scanning servers for looking open ports. I
 >*sudo ./portscan-protection-master/portscan-protection.sh*
 
 You have 4 options:
-1. Install the script
-2. Uninstall the script
+1. Install
+2. Uninstall
 3. Verify
 4. Quit
 
