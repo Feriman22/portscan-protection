@@ -46,6 +46,7 @@ In the future I will implement the auto-update function.
 ## Changelog
 
 >14-04-2020
+- Copy the script in /usr/local/sbin directory instead of /root
 - Use variables for menu selection instead of touch temp files
 - Insert cron entry in /etc/cron.d folder instead of main cron file
 - Code review & cleanup
