@@ -34,7 +34,7 @@ Nothing to do! Just install the script and enjoy the protection!
 
 ## Changelog
 
->20200413
+>13-04-2020
 - Initial release
 
 
