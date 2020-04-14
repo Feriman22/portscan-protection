@@ -3,6 +3,8 @@
 ## Description
 Hackers and kiddie scripts are always scanning servers for looking open ports. If they find one (for example your SSH port), they will try to break it. This script helps to avoid portscanning on Linux systems with built in firewall (iptables).
 
+![Screenshot](https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection-screenshot.png)
+
 ## Installation
 
 1. Download the script from GitHub:
@@ -20,10 +22,10 @@ You have 4 options:
 3. Verify
 4. Quit
 
-The `install` process will copy the script in /root folder, then insert itself in the crontab. It will run once now and on every startup, so your server will be protected at all time.
+The `install` process will copy the script in */usr/local/sbin* folder, then create a new cron rule in the file called *portscan-protection* in */etc/cron.d* folder. It will run once itself to activate ipset/iptable rules and on every startup, so your server will be protected at all the time.
 
-The `uninstall` process remove the script from /root folder and remove the crontab entry as well.
-**WARNING!** You cannot run this script again after this step from /root folder!
+The `uninstall` process remove the script from */usr/local/sbin* folder, remove the crontab entry and delete ipset/iptable rules.
+**WARNING!** You cannot run this script again after this step from */usr/local/sbin* folder!
 
 The `verify` process check the crontab entry, script location, execute permission, ipset/iptables commands and firewall rules.
 
@@ -31,16 +33,27 @@ The `verify` process check the crontab entry, script location, execute permissio
 
 Nothing to do! Just install the script and enjoy the protection!
 
+If you want to use this script in yours, there are some arguments:
+
+-i, --install\
+  Install the script
+
+-u, --uninstall\
+  Uninstall the script without confirmation
+  
+-v, --verify\
+  Verify the installation
+
 ## How to update
 
-If you want to update the script, just overwrite it in /root folder or run it with the "Install" option. It will overwrite the installed version.
+If you want to update the script, just overwrite it in */usr/local/sbin* folder or run it with the "Install" option. It will overwrite the installed version.
 
 In the future I will implement the auto-update function.
 
 ## The future
 
 - Remove iptable rules at uninstall (without reboot) - in next release
-- Set parameters for auto select menu - in next release
+- Use arguments for auto select menu - in next release
 - Implement auto update function - TBD
 
 ## Changelog
