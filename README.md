@@ -49,6 +49,7 @@ In the future I will implement the auto-update function.
 - Remove ipset and iptable rules at uninstall
 - Possibility to auto select menu (1, 2, 3)
 - Use ipset and iptable rules as variables
+- The test condition for install has been improved
 - Small typos fixed
 
 >14-04-2020
