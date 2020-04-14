@@ -39,11 +39,17 @@ In the future I will implement the auto-update function.
 
 ## The future
 
-- Remove iptable rules at uninstall (without reboot)
-- Set parameters for auto select menu
-- Implement auto update function
+- Remove iptable rules at uninstall (without reboot) - in next release
+- Set parameters for auto select menu - in next release
+- Implement auto update function - TBD
 
 ## Changelog
+
+>15-04-2020 (not released yet)
+- Remove ipset and iptable rules at uninstall
+- Possibility to auto select menu (1, 2, 3)
+- Use ipset and iptable rules as variables
+- Small typos fixed
 
 >14-04-2020
 - Copy the script in /usr/local/sbin directory instead of /root
