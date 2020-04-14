@@ -60,7 +60,7 @@ In the future I will implement the auto-update function.
 
 >15-04-2020 (not released yet)
 - Remove ipset and iptable rules at uninstall
-- Possibility to auto select menu (1, 2, 3)
+- Arguments added (-i, --install, -u, --uninstall, -v, --verify)
 - Activate/remove ipset and iptable rules with variables
 - The test condition for install has been improved
 - Small typos fixed
