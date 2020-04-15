@@ -30,7 +30,7 @@ UPDATE()
 	if [[ "$1" == "ONLYCHECK" ]] && [[ "$NEW" != "$VERSION" ]]; then
 		[ "$1" != '--cron' ] && echo -e "New version ${GR}available!${NC}"
 	else
-		[ "$1" != '--cron' ] && echo -e "The script is ${GR}up to date.${NC}"
+		[[ "$1" == "ONLYCHECK" ]] && [ "$1" != '--cron' ] && echo -e "The script is ${GR}up to date.${NC}"
 	fi
 
 	# Check the current installation
@@ -41,7 +41,7 @@ UPDATE()
 		[ "$1" == '--cron' ] && [[ ! "$NEW" ]] && exit
 
 		# Compare the installed and the GitHub stored version
-		if [[ "$NEW" != "$(head -n 18 "$SCRIPTLOCATION" | awk '/Version/ {print $4}' | head -c10)" ]]; then
+		if [[ "$NEW" != "$(awk '/VERSION=/' "$SCRIPTLOCATION" | grep -o -P '(?<=").*(?=")')" ]]; then
 			wget -q https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection.sh -O $SCRIPTLOCATION
 			[ "$1" != '--cron' ] && echo -e "Script has been ${GR}updated.${NC}"
 		else
