@@ -66,6 +66,7 @@ The script will automatically update itself after reboot. If you want to disable
 >15-04-2020
 - Update option added
 - Auto update function added
+- Check for update at the startup of the script
 - Remove ipset and iptable rules at uninstall
 - Arguments added (-i, --install, -u, --uninstall, -v, --verify, -up, --update, --cron)
 - Activate/remove ipset and iptable rules with variables
