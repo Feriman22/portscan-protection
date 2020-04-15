@@ -58,6 +58,7 @@ The script will automatically update itself after reboot. If you want to disable
 
 ## The future
 
+- Check the update at startup of the script (implemented, but not released yet)
 - Add more easier way to disable auto update function
 
 ## Changelog
