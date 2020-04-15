@@ -1,5 +1,6 @@
 #!/bin/bash
 SCRIPTNAME="Portscan Protection"
+VERSION="15-04-2020"
 SCRIPTLOCATION="/usr/local/sbin/portscan-protection.sh"
 CRONLOCATION="/etc/cron.d/portscan-protection"
 AUTOUPDATE="YES" # Edit this variable to "NO" if you don't want to auto update this script (NOT RECOMMENDED)
@@ -22,24 +23,32 @@ IPTABLECOMMANDCHECK()
 
 UPDATE()
 {
+	# Getting info about the latest GitHub version
+	NEW=$(curl -L --silent "https://github.com/Feriman22/portscan-protection/releases/latest" | awk '/<title>Release/ {print $4}')
+	
+	# Compare the installed and the GitHub stored version - Only internal, not available by any argument
+	if [[ "$1" == "ONLYCHECK" ]] && [[ "$NEW" != "$VERSION" ]]; then
+		[ "$1" != '--cron' ] && echo -e "New version ${GR}available!${NC}"
+	else
+		[ "$1" != '--cron' ] && echo -e "The script is ${GR}up to date.${NC}"
+	fi
+
 	# Check the current installation
-	if [ -f "$CRONLOCATION" ] && [ -x "$SCRIPTLOCATION" ]; then
-		NEW=$(curl -L --silent "https://github.com/Feriman22/portscan-protection/releases/latest" | awk '/<title>Release/ {print $2}')
-		INSTALLED=$(head -n 18 "$SCRIPTLOCATION" | awk '/Version/ {print $4}' | head -c10)
+	if [[ "$1" != "ONLYCHECK" ]] && [ -f "$CRONLOCATION" ] && [ -x "$SCRIPTLOCATION" ]; then
 
 		# Check the GitHub - Is it available? - Exit if not
-		[ "$1" != '--cron' ] && [[ ! "$NEW" ]] && echo -e "GitHub ${RED}not available now.${NC} Try again later." && exit
+		[ "$1" != '--cron' ] && [[ ! "$NEW" ]] && echo -e "GitHub is ${RED}not available now.${NC} Try again later." && exit
 		[ "$1" == '--cron' ] && [[ ! "$NEW" ]] && exit
 
-		# Check the installed and the GitHub stored version
-		if [[ "$NEW" != "$INSTALLED" ]] && [[ "$NEW" ]]; then
+		# Compare the installed and the GitHub stored version
+		if [[ "$NEW" != "$(head -n 18 "$SCRIPTLOCATION" | awk '/Version/ {print $4}' | head -c10)" ]]; then
 			wget -q https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection.sh -O $SCRIPTLOCATION
 			[ "$1" != '--cron' ] && echo -e "Script has been ${GR}updated.${NC}"
 		else
 			[ "$1" != '--cron' ] && echo -e "The script is ${GR}up to date.${NC}"
 		fi
 	else
-		[ "$1" != '--cron' ] && echo -e "Script ${RED}not installed.${NC} Install first then you can update it."
+		[[ "$1" != "ONLYCHECK" ]] && [ "$1" != '--cron' ] && echo -e "Script ${RED}not installed.${NC} Install first then you can update it."
 	fi
 }
 
@@ -54,7 +63,8 @@ if [ "$1" != '--cron' ]; then
 	echo "Author: Feriman"
 	echo "URL: https://github.com/Feriman22/portscan-protection"
 	echo "Open GitHub page to read the manual and check new releases"
-	echo "Version: 15-04-2020"
+	echo "Version: $VERSION"
+	UPDATE ONLYCHECK # Check new version
 	echo -e "${GR}If you found it useful, please donate via PayPal: https://paypal.me/BajzaFerenc${NC}\n"
 fi
 
