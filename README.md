@@ -1,33 +1,34 @@
 # Portscan Protection (Linux)
 
 ## Description
-Hackers and kiddie scripts are always scanning servers for looking open ports. If they find one (for example your SSH port), they will try to break it. This script helps to avoid portscanning on Linux systems with built in firewall (iptables).
+Hackers and kiddie scripts are always scanning servers for looking open ports. If they find one (for example your SSH port), they will try to break it. This script helps to avoid portscanning on Linux systems with built in firewall (iptables). If they try too hard knocking on ports, the iptable will block this IP address automagically.
 
 ![Screenshot](https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection-screenshot.png)
 
 ## Installation
 
 1. Download the script from GitHub:
->*wget https://github.com/Feriman22/portscan-protection/archive/master.zip*
-2. Unzip the file:
->*unzip master.zip*
-3. Add execute permission:
->*chmod +x ./portscan-protection-master/portscan-protection.sh*
-4. Run the script:
->*sudo ./portscan-protection-master/portscan-protection.sh*
+>*wget https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection.sh*
+2. Add execute permission:
+>*chmod +x ./portscan-protection.sh*
+3. Install the script:
+>*sudo ./portscan-protection.sh --install*
 
-You have 4 options:
+If you run it without any argument, you have 5 options:
 1. Install
 2. Uninstall
 3. Verify
-4. Quit
+4. Update
+5. Quit
 
-The `install` process will copy the script in */usr/local/sbin* folder, then create a new cron rule in the file called *portscan-protection* in */etc/cron.d* folder. It will run once itself to activate ipset/iptable rules and on every startup, so your server will be protected at all the time.
+The `install` process will copy the script in */usr/local/sbin* folder, then create a new cron rule in the file called *portscan-protection* in your */etc/cron.d* folder. It will run once itself to activate ipset/iptable rules and on every startup, so your server will be protected at all the time.
 
 The `uninstall` process remove the script from */usr/local/sbin* folder, remove the crontab entry and delete ipset/iptable rules.
 **WARNING!** You cannot run this script again after this step from */usr/local/sbin* folder!
 
-The `verify` process check the crontab entry, script location, execute permission, ipset/iptables commands and firewall rules.
+The `verify` process check the crontab entry, script location, execute permission, ipset/iptables commands and active firewall rules.
+
+The `update` process will update the installed script. You cannot update it before install!
 
 ## Daily use
 
@@ -43,24 +44,29 @@ If you want to use this script in yours, there are some arguments:
   
 -v, --verify\
   Verify the installation
+  
+-up, --update\
+  Update the script
+  
+--cron\
+  Run the script like the crontab do. It will only set ipset/iptable rules and auto update the script if not disabled. No output.
 
 ## How to update
 
-If you want to update the script, just overwrite it in */usr/local/sbin* folder or run it with the "Install" option. It will overwrite the installed version.
-
-In the future I will implement the auto-update function.
+Run the script and choose "Update" or run with --update argument.\
+The script will automatically update itself after reboot. If you want to disable it, modify the 5th line in the script.
 
 ## The future
 
-- Remove iptable rules at uninstall (without reboot) - in next release
-- Use arguments for auto select menu - in next release
-- Implement auto update function - TBD
+- Add more easier way to disable auto update function
 
 ## Changelog
 
->15-04-2020 (not released yet)
+>15-04-2020
+- Update option added
+- Auto update function added
 - Remove ipset and iptable rules at uninstall
-- Arguments added (-i, --install, -u, --uninstall, -v, --verify)
+- Arguments added (-i, --install, -u, --uninstall, -v, --verify, -up, --update, --cron)
 - Activate/remove ipset and iptable rules with variables
 - The test condition for install has been improved
 - Small typos fixed
