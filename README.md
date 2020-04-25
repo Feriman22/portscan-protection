@@ -1,7 +1,7 @@
 # Portscan Protection (Linux)
 
 ## Description
-Hackers and kiddie scripts are always scanning servers, looking for open ports. If they find one (for example your SSH port), they will try to break it. This script helps you avoid to become a victim of portscan attack on Linux systems with built in firewall (iptables) protection. If they try too quickly knocking on ports, the script will block the attacker's IP address in the iptable automagically.
+Hackers and kiddie scripts are always scanning servers, looking for open ports. If they find one (for example your SSH port), they will try to break it. This script helps you avoid becoming a victim of portscan attack on Linux systems with built-in firewall (iptables) protection. If they try too quickly knocking on ports, the script will block the attacker's IP address in the iptable automagically.
 
 ![Screenshot](https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection-screenshot.png)
 
@@ -26,9 +26,9 @@ The `install` process will copy the script in */usr/local/sbin* folder, then cre
 The `uninstall` process remove the script from */usr/local/sbin* folder, remove the crontab entry and delete ipset/iptable rules.
 **WARNING!** You cannot run this script again after this step from */usr/local/sbin* folder!
 
-The `verify` process check the crontab entry, script location, execute permission, ipset/iptables commands and active firewall rules.
+The `verify` process checks the crontab entry, script location, execute permission, ipset/iptables commands, and active firewall rules.
 
-The `update` process will update the installed script. You cannot update it before install!
+The `update` process will update the installed script. You cannot update it before installation!
 
 ## Daily use
 
@@ -49,7 +49,7 @@ If you want to use this script somewhere else (for example in OS installer scrip
   Update the script
   
 --cron\
-  Run the script like the crontab do. It will only set ipset/iptable rules and auto update the script if not disabled. No output.
+  Run the script like the crontab do. It will only set ipset/iptable rules and auto-update the script if not disabled. No output.
 
 ## How to update
 
@@ -59,15 +59,15 @@ The script will automatically update itself after reboot. If you want to disable
 ## The future
 
 - Better update process
-- Add more easier way to disable auto update function
+- Add easier way to disable auto-update function
 
 ## Changelog
 
 >15-04-2020
 - Update option added
-- Auto update function added
-- Check for update at the startup of the script
-- Remove ipset and iptable rules at uninstall
+- Auto-update function added
+- Check for an update at the startup of the script
+- Remove ipset and iptable rules at uninstalling
 - Arguments added (-i, --install, -u, --uninstall, -v, --verify, -up, --update, --cron)
 - Activate/remove ipset and iptable rules with variables
 - The test condition for install has been improved
@@ -76,7 +76,7 @@ The script will automatically update itself after reboot. If you want to disable
 >14-04-2020
 - Copy the script in /usr/local/sbin directory instead of /root
 - Use variables for menu selection instead of touch temp files
-- Insert cron entry in /etc/cron.d folder instead of main cron file
+- Insert cron entry in /etc/cron.d folder instead of the main cron file
 - Code review & cleanup
 - Small bugs fixed
 
