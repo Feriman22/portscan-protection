@@ -58,10 +58,12 @@ The script will automatically update itself after reboot. If you want to disable
 
 ## The future
 
-- Better update process
 - Add easier way to disable auto-update function
 
 ## Changelog
+
+>26-04-2020
+- More efficient update process
 
 >15-04-2020
 - Update option added
