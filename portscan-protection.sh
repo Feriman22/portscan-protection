@@ -1,6 +1,6 @@
 #!/bin/bash
 SCRIPTNAME="Portscan Protection"
-VERSION="15-04-2020"
+VERSION="26-04-2020"
 SCRIPTLOCATION="/usr/local/sbin/portscan-protection.sh"
 CRONLOCATION="/etc/cron.d/portscan-protection"
 AUTOUPDATE="YES" # Edit this variable to "NO" if you don't want to auto update this script (NOT RECOMMENDED)
@@ -24,7 +24,7 @@ IPTABLECOMMANDCHECK()
 UPDATE()
 {
 	# Getting info about the latest GitHub version
-	NEW=$(curl -L --silent "https://github.com/Feriman22/portscan-protection/releases/latest" | awk '/<title>Release/ {print $4}')
+	NEW=$(curl -L --silent "https://github.com/Feriman22/portscan-protection/releases/latest" | grep css-truncate-target | grep span | cut -d ">" -f2 | cut -d "<" -f1 | tail -1)
 	
 	# Compare the installed and the GitHub stored version - Only internal, not available by any argument
 	if [[ "$1" == "ONLYCHECK" ]] && [[ "$NEW" != "$VERSION" ]]; then
@@ -187,12 +187,12 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 	### Starting Uninstall ###
 	#
 
-	# Remove crontab entry
+	# Remove crontab file
 	if [ -f "$CRONLOCATION" ]; then
 		rm -r "$CRONLOCATION"
-		echo -e "\nCrontab entry removed. ${GR}OK.${NC}"
+		echo -e "\nCrontab file removed. ${GR}OK.${NC}"
 	else
-		echo -e "\nCrontab entry not found. ${GR}OK.${NC}"
+		echo -e "\nCrontab file not found. ${GR}OK.${NC}"
 	fi
 
 	# Remove the script
