@@ -75,6 +75,9 @@ The script will automatically update itself after reboot. If you want to disable
 
 ## Changelog
 
+>28-04-2020
+- Error codes have been added
+
 >26-04-2020
 - More efficient update process
 
