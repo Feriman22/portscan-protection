@@ -1,6 +1,6 @@
 #!/bin/bash
 SCRIPTNAME="Portscan Protection"
-VERSION="26-04-2020"
+VERSION="28-04-2020"
 SCRIPTLOCATION="/usr/local/sbin/portscan-protection.sh"
 CRONLOCATION="/etc/cron.d/portscan-protection"
 AUTOUPDATE="YES" # Edit this variable to "NO" if you don't want to auto update this script (NOT RECOMMENDED)
@@ -12,13 +12,13 @@ AUTOUPDATE="YES" # Edit this variable to "NO" if you don't want to auto update t
 IPSETCOMMANDCHECK()
 {
 	# Check the ipset command
-	! which ipset > /dev/null && echo -e "\nipset command ${RED}not found${NC}. Exiting...\n" && exit || echo -e "ipset command found. ${GR}OK.${NC}"
+	! which ipset > /dev/null && echo -e "\nipset command ${RED}not found${NC}. Exiting...\n" && exit 6 || echo -e "ipset command found. ${GR}OK.${NC}"
 }
 
 IPTABLECOMMANDCHECK()
 {
 	# Check the iptables command
-	! which iptables > /dev/null && echo -e "iptables command ${RED}not found${NC}. Exiting...\n" && exit || echo -e "iptables command found. ${GR}OK.${NC}"
+	! which iptables > /dev/null && echo -e "iptables command ${RED}not found${NC}. Exiting...\n" && exit 7 || echo -e "iptables command found. ${GR}OK.${NC}"
 }
 
 UPDATE()
@@ -37,8 +37,8 @@ UPDATE()
 	if [[ "$1" != "ONLYCHECK" ]] && [ -f "$CRONLOCATION" ] && [ -x "$SCRIPTLOCATION" ]; then
 
 		# Check the GitHub - Is it available? - Exit if not
-		[ "$1" != '--cron' ] && [[ ! "$NEW" ]] && echo -e "GitHub is ${RED}not available now.${NC} Try again later." && exit
-		[ "$1" == '--cron' ] && [[ ! "$NEW" ]] && exit
+		[ "$1" != '--cron' ] && [[ ! "$NEW" ]] && echo -e "GitHub is ${RED}not available now.${NC} Try again later." && exit 8
+		[ "$1" == '--cron' ] && [[ ! "$NEW" ]] && exit 8
 
 		# Compare the installed and the GitHub stored version
 		if [[ "$NEW" != "$(awk '/VERSION=/' "$SCRIPTLOCATION" | grep -o -P '(?<=").*(?=")')" ]]; then
@@ -69,7 +69,7 @@ if [ "$1" != '--cron' ]; then
 fi
 
 # Check the root permission
-[ ! $(id -u) = 0 ] && echo -e "${RED}Run as root!${NC} Exiting...\n" && exit
+[ ! $(id -u) = 0 ] && echo -e "${RED}Run as root!${NC} Exiting...\n" && exit 5
 
 # Define ipset and iptable rules - Used at magic and uninstall part
 IPSET1='port_scanners hash:ip family inet hashsize 32768 maxelem 65536 timeout 600'
@@ -175,7 +175,7 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 				for i in {5..1}; do echo $i && sleep 1; done
 			elif [ "$var1" == 'n' ]; then
 				echo "Okay, exit."
-				exit
+				exit 9
 			else
 				echo "Enter a valid response Y or n";
 				loop=true;
