@@ -62,7 +62,7 @@ I added some error codes in 28-04-2020 release. These codes documented here:
 | 7  | iptables command not found |
 | 8  | GitHub is not available  |
 | 9  | Choosed *No* at Uninstall |
-| 130  | Script cancelled by *ctrl + c* |
+| 130  | Script canceled by *ctrl + c* |
 
 ## How to update
 
