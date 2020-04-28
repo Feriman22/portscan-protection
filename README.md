@@ -52,9 +52,9 @@ If you want to use this script somewhere else (for example in OS installer scrip
   Run the script like the crontab do. It will only set ipset/iptable rules and auto-update the script if not disabled. No output.
 
 
-I added some error codes in 28-04-2020 release. These codes documented here:
+I added some exit codes in 28-04-2020 release. These codes documented here:
 
-| Error code  | What does it mean? |
+| Exit code  | What does it mean? |
 | ------------- | ------------- |
 | 0  | Everything was fine (no error) |
 | 5  | Not enough permission. Run as root or with sudo |
