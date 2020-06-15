@@ -1,7 +1,7 @@
 # Portscan Protection (Linux)
 
 ## Description
-Hackers and kiddie scripts are always scanning servers, looking for open ports. If they find one (for example your SSH port), they will try to break it. This script helps you avoid becoming a victim of portscan attack on Linux systems with built-in firewall (iptables) protection. If they try too quickly knocking on ports, the script will block the attacker's IP address in the iptable automagically.
+Hackers and kiddie scripts always scan servers and look for open ports. If they find one (for example your SSH port), they will try to crack it. This script helps you to avoid becoming a victim of portscan attack on Linux systems with built-in firewall protection (iptables). If they try to knock on ports too quickly, the script will automagically block the attacker's IP address in the iptable.
 
 ![Screenshot](https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection-screenshot.png)
 
@@ -21,20 +21,20 @@ If you run it without any argument, you have 5 options:
 4. Update
 5. Quit
 
-The `install` process will copy the script in */usr/local/sbin* folder, then create a new cron rule in the file called *portscan-protection* in */etc/cron.d* folder. It will run once itself to activate ipset/iptable rules and on every startup, so your server will be protected at all the time.
+The `install` process copies the script to the */usr/local/sbin* folder and then creates a new cron rule in the file called *portscan-protection* in the */etc/cron.d* folder. It is executed once by itself to enable the ipset/iptable rules, and every startup, so your server is protected at all times.
 
-The `uninstall` process remove the script from */usr/local/sbin* folder, remove the crontab entry and delete ipset/iptable rules.
-**WARNING!** You cannot run this script again after this step from */usr/local/sbin* folder!
+The `uninstall` process removes the script from the */usr/local/sbin* folder, removes the crontab entry and deletes ipset/iptable rules.
+**WARNING!** After this step, you can no longer run the script from the */usr/local/sbin* folder!
 
-The `verify` process checks the crontab entry, script location, execute permission, ipset/iptables commands, and active firewall rules.
+The `verify` process checks the crontab entry, the location of the script, the execution permission, the ipset/iptables commands and the active firewall rules.
 
-The `update` process will update the installed script. You cannot update it before installation!
+The `update` process updates the installed script. You cannot update it before installation!
 
 ## Daily use
 
 Nothing to do! Just install the script and enjoy the protection!
 
-If you want to use this script somewhere else (for example in OS installer script), there are some arguments:
+If you want to use this script somewhere else (e.g. in an OS installer script), there are some arguments:
 
 -i, --install\
   Install the script
