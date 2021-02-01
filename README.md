@@ -76,6 +76,11 @@ The script will automatically update itself after reboot. If you want to disable
 
 ## Changelog
 
+>01-02-2021
+- Bugfix: ipset and iptable commands are not found on CentOS systems
+- Bugfix: Crontab syntax was wrong
+- Bugfix: Run update process only if new version available
+
 >28-04-2020
 - Error codes have been added
 
