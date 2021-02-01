@@ -1,9 +1,10 @@
 #!/bin/bash
 SCRIPTNAME="Portscan Protection"
-VERSION="28-04-2020"
+VERSION="01-02-2021"
 SCRIPTLOCATION="/usr/local/sbin/portscan-protection.sh"
 CRONLOCATION="/etc/cron.d/portscan-protection"
 AUTOUPDATE="YES" # Edit this variable to "NO" if you don't want to auto update this script (NOT RECOMMENDED)
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 #
 # Define some functions
@@ -41,7 +42,7 @@ UPDATE()
 		[ "$1" == '--cron' ] && [[ ! "$NEW" ]] && exit 8
 
 		# Compare the installed and the GitHub stored version
-		if [[ "$NEW" != "$(awk '/VERSION=/' "$SCRIPTLOCATION" | grep -o -P '(?<=").*(?=")')" ]]; then
+		if [[ "$NEW" != "$VERSION" ]]; then
 			wget -q https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection.sh -O $SCRIPTLOCATION
 			[ "$1" != '--cron' ] && echo -e "Script has been ${GR}updated.${NC}"
 		else
@@ -142,7 +143,7 @@ if [ "$OPT" == '-i' ] || [ "$OPTL" == '--install' ]; then
 	IPTABLECOMMANDCHECK
 
 	# Set crontab rule if doesn't exists yet
-	[ ! -f "$CRONLOCATION" ] && echo -e "# $SCRIPTNAME installed at $(date)\n@reboot sleep 30 && $SCRIPTLOCATION --cron" > "$CRONLOCATION" && echo -e "Crontab entry has been set. ${GR}OK.${NC}" || echo -e "Crontab entry ${GR}already set.${NC}"
+	[ ! -f "$CRONLOCATION" ] && echo -e "# $SCRIPTNAME installed at $(date)\n@reboot root sleep 30 && $SCRIPTLOCATION --cron" > "$CRONLOCATION" && echo -e "Crontab entry has been set. ${GR}OK.${NC}" || echo -e "Crontab entry ${GR}already set.${NC}"
 
 	# Copy the script to $SCRIPTLOCATION and add execute permission
 	if [ "$(dirname "$0")/$(basename "$0")" != "$SCRIPTLOCATION" ]; then
