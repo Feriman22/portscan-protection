@@ -22,6 +22,11 @@ IPTABLECOMMANDCHECK()
 	! which iptables > /dev/null && echo -e "iptables command ${RED}not found${NC}. Exiting...\n" && exit 7 || echo -e "iptables command found. ${GR}OK.${NC}"
 }
 
+SETCRONTAB()
+{
+[ ! -f "$CRONLOCATION" ] || [ $(grep -c "reboot root sleep" "$CRONLOCATION") -lt 1 ] && echo -e "# $SCRIPTNAME installed at $(date)\n@reboot root sleep 30 && $SCRIPTLOCATION --cron" > "$CRONLOCATION" && echo -e "Crontab entry has been set. ${GR}OK.${NC}" || echo -e "Crontab entry ${GR}already set.${NC}"
+}
+
 UPDATE()
 {
 	# Getting info about the latest GitHub version
@@ -44,6 +49,7 @@ UPDATE()
 		# Compare the installed and the GitHub stored version
 		if [[ "$NEW" != "$VERSION" ]]; then
 			wget -q https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection.sh -O $SCRIPTLOCATION
+			SETCRONTAB
 			[ "$1" != '--cron' ] && echo -e "Script has been ${GR}updated.${NC}"
 		else
 			[ "$1" != '--cron' ] && echo -e "The script is ${GR}up to date.${NC}"
@@ -143,7 +149,7 @@ if [ "$OPT" == '-i' ] || [ "$OPTL" == '--install' ]; then
 	IPTABLECOMMANDCHECK
 
 	# Set crontab rule if doesn't exists yet
-	[ ! -f "$CRONLOCATION" ] && echo -e "# $SCRIPTNAME installed at $(date)\n@reboot root sleep 30 && $SCRIPTLOCATION --cron" > "$CRONLOCATION" && echo -e "Crontab entry has been set. ${GR}OK.${NC}" || echo -e "Crontab entry ${GR}already set.${NC}"
+	SETCRONTAB
 
 	# Copy the script to $SCRIPTLOCATION and add execute permission
 	if [ "$(dirname "$0")/$(basename "$0")" != "$SCRIPTLOCATION" ]; then
