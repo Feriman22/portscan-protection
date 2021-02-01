@@ -31,7 +31,7 @@ UPDATE()
 {
 	# Getting info about the latest GitHub version
 	NEW=$(curl -L --silent "https://github.com/Feriman22/portscan-protection/releases/latest" | grep css-truncate-target | grep span | cut -d ">" -f2 | cut -d "<" -f1 | tail -1)
-	
+
 	# Compare the installed and the GitHub stored version - Only internal, not available by any argument
 	if [[ "$1" == "ONLYCHECK" ]] && [[ "$NEW" != "$VERSION" ]]; then
 		[ "$1" != '--cron' ] && echo -e "New version ${GR}available!${NC}"
@@ -145,7 +145,7 @@ if [ "$OPT" == '-i' ] || [ "$OPTL" == '--install' ]; then
 	SECONDS=0
 
 	IPSETCOMMANDCHECK
-	
+
 	IPTABLECOMMANDCHECK
 
 	# Set crontab rule if doesn't exists yet
@@ -204,8 +204,7 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 
 	# Remove the script
 	[ -f "$SCRIPTLOCATION" ] && rm -f "$SCRIPTLOCATION" && echo -e "The script removed. ${GR}OK.${NC}" || echo -e "Script not found. ${GR}OK.${NC}"
-	
-	
+
 	# Remove ipset and iptable rules
 	if [ $(iptables -S | grep -cF -- "-A $IPTABLE1") -gt 0 ]; then
 		iptables -D $IPTABLE1
@@ -273,7 +272,7 @@ if [ "$OPT" == '-v' ] || [ "$OPTL" == '--verify' ]; then
 	fi
 
 	IPSETCOMMANDCHECK
-	
+
 	IPTABLECOMMANDCHECK
 
 	[ $(ipset list | grep -c port_scanners) -gt 0 ] && [ $(ipset list | grep -c scanned_ports) -gt 0 ] && echo -e "iptables rules have been configured. You are protected! ${GR}OK.${NC}\n" || echo -e "iptables rules are ${RED}not configured!${NC}\n"
