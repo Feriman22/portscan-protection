@@ -73,8 +73,13 @@ The script will automatically update itself after reboot. If you want to disable
 
 - Whitelist
 - Add easier way to disable auto-update function
+- Use cURL instead of wget
 
 ## Changelog
+
+>UNDER DEVELOPMENT
+- Use cURL instead of wget
+- Whitelist (ALPHA)
 
 >01-02-2021
 - Bugfix: ipset and iptable commands are not found on CentOS systems
