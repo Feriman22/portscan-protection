@@ -48,7 +48,7 @@ UPDATE()
 
 		# Compare the installed and the GitHub stored version
 		if [[ "$NEW" != "$VERSION" ]]; then
-			wget -q https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection.sh -O $SCRIPTLOCATION
+			curl -s https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection.sh -O $SCRIPTLOCATION
 			SETCRONTAB
 			[ "$1" != '--cron' ] && echo -e "Script has been ${GR}updated.${NC}"
 		else
