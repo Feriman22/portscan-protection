@@ -140,7 +140,7 @@ if [ "$1" == '--cron' ]; then
 fi
 
 # Call the menu
-if [ "$1" == "-i" ] || [ "$1" == "--install" ] || [ "$1" == "-u" ] || [ "$1" == "--uninstall" ] || [ "$1" == "-v" ] || [ "$1" == "--verify" ] || [ "$1" == "-up" ] || [ "$1" == "--update" ]; then
+if [ "$1" == "-i" ] || [ "$1" == "-u" ] || [ "$1" == "-v" ] || [ "$1" == "--install" ] || [ "$1" == "--uninstall" ] || [ "$1" == "--verify" ] || [ "$1" == "-up" ] || [ "$1" == "--update" ]; then
 	OPT="$1" && OPTL="$1" && ARG="YES"
 else
 	PS3='Please enter your choice: '
@@ -193,8 +193,11 @@ if [ "$OPT" == '-i' ] || [ "$OPTL" == '--install' ]; then
 	SETCRONTAB
 
 	# Copy the script to $SCRIPTLOCATION and add execute permission
-	if [ "$(dirname "$0")/$(basename "$0")" != "$SCRIPTLOCATION" ]; then
-		/bin/cp -rf "$0" /usr/local/sbin && chmod +x "$SCRIPTLOCATION" && echo -e "This script has been copied in $SCRIPTLOCATION ${GR}OK.${NC}"
+	INSTALLERLOCATION=$(realpath $0)
+	if [ "$INSTALLERLOCATION" != "$SCRIPTLOCATION" ]; then
+		cp -rf "$INSTALLERLOCATION" /usr/local/sbin/ && chmod +x "$SCRIPTLOCATION" && echo -e "This script has been copied in $SCRIPTLOCATION ${GR}OK.${NC}"
+		rm "$INSTALLERLOCATION"
+		ln -s "$SCRIPTLOCATION" "$INSTALLERLOCATION"
 	else
 		echo -e "The script already copied to destination or has been updated. Nothing to do. ${GR}OK.${NC}"
 	fi
@@ -247,33 +250,17 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 	[ -f "$SCRIPTLOCATION" ] && rm -f "$SCRIPTLOCATION" && echo -e "The script removed. ${GR}OK.${NC}" || echo -e "Script not found. ${GR}OK.${NC}"
 
 	# Remove iptable rules
-	if [ $(iptables -S | grep -cF -- "-A $IPTABLE1") -gt 0 ]; then
-		iptables -D $IPTABLE1
-		echo -e "1st iptable rule has been removed. ${GR}OK.${NC}"
-	else
-		echo -e "1st iptable rule not found. ${GR}OK.${NC}"
-	fi
-
-	if [ $(iptables -S | grep -cF -- "-A $IPTABLE2") -gt 0 ]; then
-		iptables -D $IPTABLE2
-		echo -e "2nd iptable rule has been removed. ${GR}OK.${NC}"
-	else
-		echo -e "2nd iptable rule not found. ${GR}OK.${NC}"
-	fi
-
-	if [ $(iptables -S | grep -cF -- "-A $IPTABLE3") -gt 0 ]; then
-		iptables -D $IPTABLE3
-		echo -e "3rd iptable rule has been removed. ${GR}OK.${NC}"
-	else
-		echo -e "3rd iptable rule not found. ${GR}OK.${NC}"
-	fi
-
-	if [ $(iptables -S | grep -cF -- "-A $IPTABLE4") -gt 0 ]; then
-		iptables -D $IPTABLE4
-		echo -e "4th iptable rule has been removed. ${GR}OK.${NC}"
-	else
-		echo -e "4th iptable rule not found. ${GR}OK.${NC}"
-	fi
+	N=1
+	for IPTABLERULE in "$IPTABLE1" "$IPTABLE2" "$IPTABLE3" "$IPTABLE4"; do
+		if [ $(iptables -S | grep -cF -- "-A $IPTABLERULE") -gt 0 ]; then
+			iptables -D $IPTABLERULE
+			echo -e "#$N iptable rule has been removed. ${GR}OK.${NC}"
+			(( N = N + 1 ))
+		else
+			echo -e "#$N iptable rule not found. ${GR}OK.${NC}"
+			(( N = N + 1 ))
+		fi
+	done
 
 	# Remove Whitelist rules
 	if [ -f $WHITELISTLOCATION ]; then
@@ -290,13 +277,13 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 	[ -f "$WHITELISTLOCATION" ] && rm -f "$WHITELISTLOCATION" && echo -e "Whitelist removed. ${GR}OK.${NC}" || echo -e "Whitelist not found. ${GR}OK.${NC}"
 
 	# Remove ipset rules
-	for rule in scanned_ports port_scanners; do
-		if [ $(ipset list | grep -c $rule) -gt 0 ]; then
+	for IPSTERULE in scanned_ports port_scanners; do
+		if [ $(ipset list | grep -c "$IPSETRULE") -gt 0 ]; then
 			sleep 1
-			ipset destroy $rule
-			echo -e "$rule ipset rule has been removed. ${GR}OK.${NC}"
+			ipset destroy $IPSETRULE
+			echo -e "$IPSTERULE ipset rule has been removed. ${GR}OK.${NC}"
 		else
-			echo -e "$rule ipset rule not found. ${GR}OK.${NC}"
+			echo -e "$IPSTERULE ipset rule not found. ${GR}OK.${NC}"
 		fi
 	done
 fi
