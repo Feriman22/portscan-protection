@@ -246,7 +246,7 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 	# Remove the script
 	[ -f "$SCRIPTLOCATION" ] && rm -f "$SCRIPTLOCATION" && echo -e "The script removed. ${GR}OK.${NC}" || echo -e "Script not found. ${GR}OK.${NC}"
 
-	# Remove ipset and iptable rules
+	# Remove iptable rules
 	if [ $(iptables -S | grep -cF -- "-A $IPTABLE1") -gt 0 ]; then
 		iptables -D $IPTABLE1
 		echo -e "1st iptable rule has been removed. ${GR}OK.${NC}"
@@ -275,20 +275,6 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 		echo -e "4th iptable rule not found. ${GR}OK.${NC}"
 	fi
 
-	if [ $(ipset list | grep -c port_scanners) -gt 0 ]; then
-		ipset destroy port_scanners
-		echo -e "1st ipset rule has been removed. ${GR}OK.${NC}"
-	else
-		echo -e "1st ipset rule not found. ${GR}OK.${NC}"
-	fi
-
-	if [ $(ipset list | grep -c scanned_ports) -gt 0 ]; then
-		ipset destroy scanned_ports
-		echo -e "2nd ipset rule has been removed. ${GR}OK.${NC}"
-	else
-		echo -e "2nd ipset rule not found. ${GR}OK.${NC}"
-	fi
-
 	# Remove Whitelist rules
 	if [ -f $WHITELISTLOCATION ]; then
 		while read WHILELISTIP; do
@@ -302,8 +288,18 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 
 	# Remove Whitelist
 	[ -f "$WHITELISTLOCATION" ] && rm -f "$WHITELISTLOCATION" && echo -e "Whitelist removed. ${GR}OK.${NC}" || echo -e "Whitelist not found. ${GR}OK.${NC}"
-fi
 
+	# Remove ipset rules
+	for rule in scanned_ports port_scanners; do
+		if [ $(ipset list | grep -c $rule) -gt 0 ]; then
+			sleep 1
+			ipset destroy $rule
+			echo -e "$rule ipset rule has been removed. ${GR}OK.${NC}"
+		else
+			echo -e "$rule ipset rule not found. ${GR}OK.${NC}"
+		fi
+	done
+fi
 
 ##
 ########### Choosed the Verify ###########
