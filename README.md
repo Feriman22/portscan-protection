@@ -96,7 +96,7 @@ or
 - Use cURL instead of wget
 - Smarter way to update
 - Different menus before and after install
-- Shorter code (combine similar if structures in one for cycle)
+- Shorter code (combine similar *if* structures in one *for* cycle)
 - Remove original installer to avoid confusing
 - Small bugfixes
 
