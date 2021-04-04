@@ -161,7 +161,7 @@ else
 			"Verify")
 				OPT='-v' && OPTL='--verify' && break
 				;;
-			"Update")
+			"Update the script")
 				OPT='-up' && OPTL='--update' && break
 				;;
 			"Quit")
