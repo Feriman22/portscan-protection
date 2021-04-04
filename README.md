@@ -87,9 +87,7 @@ or
 ## The future
 
 - Add easier way to disable auto-update function
-- Shorter code (combine similar *if* structures in one *for* cycle)
 - Reinstall function
-- Remove original installer to avoid confusing
 
 ## Changelog
 
