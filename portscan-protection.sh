@@ -140,7 +140,7 @@ if [ "$1" == '--cron' ]; then
 fi
 
 # Call the menu
-if [ "$1" == "-i" ] || [ "$1" == "-u" ] || [ "$1" == "-v" ] || [ "$1" == "--install" ] || [ "$1" == "--uninstall" ] || [ "$1" == "--verify" ] || [ "$1" == "-up" ] || [ "$1" == "--update" ]; then
+if [ "$1" == "-i" ] || [ "$1" == "--install" ] || [ "$1" == "-u" ] || [ "$1" == "--uninstall" ] || [ "$1" == "-v" ] || [ "$1" == "--verify" ] || [ "$1" == "-up" ] || [ "$1" == "--update" ]; then
 	OPT="$1" && OPTL="$1" && ARG="YES"
 else
 	PS3='Please enter your choice: '
