@@ -84,7 +84,7 @@ The script will automatically update itself after reboot. If you want to disable
 ## The future
 
 - Add easier way to disable auto-update function
-- Shorter code (use *for* cycle instead of *if* structures)
+- Shorter code (combine similar *if* structures in one *for* cycle)
 
 ## Changelog
 
