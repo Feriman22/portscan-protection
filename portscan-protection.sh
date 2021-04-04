@@ -33,7 +33,7 @@ SETCRONTAB()
 
 WHITELIST()
 {
-	[ ! -f $WHITELISTLOCATION ] && echo -e "# This file is part of $SCRIPTNAME\n# Add one IPv4 address per line to activate whitelist.\n# More info on GitHub: https://github.com/Feriman22/portscan-protection\n# If you found it useful, please donate via PayPal: https://paypal.me/BajzaFerenc\n# Thank you!\n\n127.0.0.1" > $WHITELISTLOCATION
+	[ ! -f $WHITELISTLOCATION ] && echo -e "# This file is part of $SCRIPTNAME\n# Add one IP per line to this file. These IP addresses will be never blocked. Note: Only IPv4 addresses are supported.\n# More info on GitHub: https://github.com/Feriman22/portscan-protection\n# If you found it useful, please donate via PayPal: https://paypal.me/BajzaFerenc\n# Thank you!\n\n127.0.0.1" > $WHITELISTLOCATION
 	if which nano > /dev/null; then
 		nano $WHITELISTLOCATION
 		$SCRIPTLOCATION --cron ; echo -e "Whitelist IPs activated if the file changed."
