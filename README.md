@@ -3,7 +3,11 @@
 ## Description
 Hackers and kiddie scripts always scan servers and look for open ports. If they find one (for example your SSH port), they will try to crack it. This script helps you to avoid becoming a victim of portscan attack on Linux systems with built-in firewall protection (iptables). If they try to knock on ports too quickly, the script will automagically block the attacker's IP address in the iptable.
 
-![Screenshot](https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection-screenshot.png)
+*The menu before install*  
+![Screenshot](https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection-not-installed-screenshot.png)  
+
+*The menu after install*  
+![Screenshot](https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection-installed-screenshot.png)
 
 ## Installation
 
@@ -19,25 +23,28 @@ Hackers and kiddie scripts always scan servers and look for open ports. If they 
 3. **Install the script:**
 >*sudo ./portscan-protection.sh --install*
 
-If you run it without any argument, you have 5 options:
-1. Install
-2. Uninstall
-3. Verify
-4. Update
-5. Quit
+If you run it without any argument, you have few options:
+1. Install *# Available only if not installed yet*
+2. Uninstall *# Available only if already installed*
+3. Edit Whitelist *# Available only if already installed*
+4. Verify
+5. Update the script *# Available only if already installed*
+6. Quit
 
-The `install` process copies the script to the */usr/local/sbin* folder and then creates a new cron rule in the file called *portscan-protection* in the */etc/cron.d* folder. It is executed once by itself to enable the ipset/iptable rules, and every startup, so your server is protected at all times.
+The `Install` process copies the script to the */usr/local/sbin* folder and then creates a new cron rule in the file called *portscan-protection* in the */etc/cron.d* folder. It is executed once by itself to enable the ipset/iptable rules, and every startup, so your server is protected at all times.
 
-The `uninstall` process removes the script from the */usr/local/sbin* folder, removes the crontab entry and deletes ipset/iptable rules.
+The `Uninstall` process removes the script from the */usr/local/sbin* folder, removes the crontab entry and deletes ipset/iptable rules.
 **WARNING!** After this step, you can no longer run the script from the */usr/local/sbin* folder!
 
-The `verify` process checks the crontab entry, the location of the script, the execution permission, the ipset/iptables commands and the active firewall rules.
+The `Edit Whitelist` option allow to add IPv4 addresses to the whitelist. These IP addresses will never blocked. Note: Only IPv4 addresses are supported.
 
-The `update` process updates the installed script. You cannot update it before installation!
+The `Verify` process checks the crontab entry, the location of the script, the execution permission, the ipset/iptables commands and the active firewall rules.
+
+The `Update the script` process updates the installed script. You cannot update it before installation!
 
 ## Daily use
 
-Nothing to do! Just install the script and enjoy the protection!
+Nothing to do! Just install the script and enjoy the protection! If you want to run the script again, just type `portscan-protection.sh` as root user.
 
 If you want to use this script somewhere else (e.g. in an OS installer script), there are some arguments:
 
@@ -76,15 +83,16 @@ The script will automatically update itself after reboot. If you want to disable
 
 ## The future
 
-- Whitelist
 - Add easier way to disable auto-update function
-- Use cURL instead of wget
 
 ## Changelog
 
->UNDER DEVELOPMENT
+>04-04-2021
+- Whitelist function
 - Use cURL instead of wget
-- Whitelist (ALPHA)
+- Smarter way to update
+- Different menus before and after install
+- Small bugfixes
 
 >01-02-2021
 - Bugfix: ipset and iptable commands are not found on CentOS systems
