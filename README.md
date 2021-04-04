@@ -78,8 +78,11 @@ I added some exit codes in 28-04-2020 release. These codes documented here:
 
 ## How to update
 
-Run the script and choose "Update" or run with --update argument.\
-The script will automatically update itself after reboot. If you want to disable it, modify the 7th line in the script.
+The script will automatically update itself after reboot. *If you want to disable it, modify the 7th line in the script.*  
+However to manually update, run the script and choose "Update the script" or run with --update argument like this:  
+`portscan-protection.sh --update`  
+or  
+`/usr/local/sbin/portscan-protection.sh --update`
 
 ## The future
 
