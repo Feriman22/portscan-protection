@@ -36,7 +36,7 @@ The `Install` process copies the script to the */usr/local/sbin* folder and then
 The `Uninstall` process removes the script from the */usr/local/sbin* folder, removes the crontab entry and deletes ipset/iptable rules.
 **WARNING!** After this step, you can no longer run the script from the */usr/local/sbin* folder!
 
-The `Edit Whitelist` option allow to add IPv4 addresses to the whitelist. These IP addresses will never blocked. Note: Only IPv4 addresses are supported.
+The `Edit Whitelist` option allow to add IPv4 addresses to the whitelist. Add one IP per line to this file. These IP addresses will be never blocked. Note: Only IPv4 addresses are supported.
 
 The `Verify` process checks the crontab entry, the location of the script, the execution permission, the ipset/iptables commands and the active firewall rules.
 
