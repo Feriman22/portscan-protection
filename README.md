@@ -85,6 +85,8 @@ The script will automatically update itself after reboot. If you want to disable
 
 - Add easier way to disable auto-update function
 - Shorter code (combine similar *if* structures in one *for* cycle)
+- Reinstall function
+- Remove original installer to avoid confusing
 
 ## Changelog
 
