@@ -86,8 +86,8 @@ or
 
 ## The future
 
-- Add easier way to disable auto-update function
 - Reinstall function
+- Easier way to disable auto-update function
 
 ## Changelog
 
@@ -97,7 +97,7 @@ or
 - Smarter way to update
 - Different menus before and after install
 - Shorter code (combine similar *if* structures in one *for* cycle)
-- Remove original installer to avoid confusing
+- Replace original installer with symlink to avoid confusing
 - Small bugfixes
 
 >01-02-2021
