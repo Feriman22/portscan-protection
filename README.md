@@ -7,14 +7,16 @@ Hackers and kiddie scripts always scan servers and look for open ports. If they 
 
 ## Installation
 
-0. Install cURL and ipset:
-- Ubuntu/Debian: *apt update && apt install curl ipset*
-- RedHat/CentOS: *yum install curl ipset*
-1. Download the script from GitHub:
+0. **Install cURL and ipset:**
+- Ubuntu/Debian:
+>*apt update && apt install curl ipset*
+- RedHat/CentOS:
+>*yum install curl ipset*
+1. **Download the script from GitHub:**
 >*curl -s https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection.sh -O portscan-protection.sh*
-2. Add execute permission:
+2. **Add execute permission:**
 >*chmod +x ./portscan-protection.sh*
-3. Install the script:
+3. **Install the script:**
 >*sudo ./portscan-protection.sh --install*
 
 If you run it without any argument, you have 5 options:
