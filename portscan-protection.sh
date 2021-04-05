@@ -1,9 +1,10 @@
 #!/bin/bash
 SCRIPTNAME="Portscan Protection"
-VERSION="04-04-2021"
+VERSION="05-04-2021"
 SCRIPTLOCATION="/usr/local/sbin/portscan-protection.sh"
 WHITELISTLOCATION="/usr/local/sbin/portscan-protection-white.list"
 CRONLOCATION="/etc/cron.d/portscan-protection"
+GITHUBRAW="https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection.sh"
 AUTOUPDATE="YES" # Edit this variable to "NO" if you don't want to auto update this script (NOT RECOMMENDED)
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
@@ -14,14 +15,14 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 IPSETCOMMANDCHECK()
 {
 	# Check the ipset command
-	! which ipset > /dev/null && echo -e "\nipset command ${RED}not found${NC}. Exiting...\n" && exit 6 || echo -e "ipset command found. ${GR}OK.${NC}"
+	! which ipset > /dev/null && echo -e "\nipset command ${RED}not found${NC}.\n" && exit 6 || echo -e "ipset command found. ${GR}OK.${NC}"
 }
 
 
 IPTABLECOMMANDCHECK()
 {
 	# Check the iptables command
-	! which iptables > /dev/null && echo -e "iptables command ${RED}not found${NC}. Exiting...\n" && exit 7 || echo -e "iptables command found. ${GR}OK.${NC}"
+	! which iptables > /dev/null && echo -e "iptables command ${RED}not found${NC}.\n" && exit 7 || echo -e "iptables command found. ${GR}OK.${NC}"
 }
 
 
@@ -33,32 +34,29 @@ SETCRONTAB()
 
 WHITELIST()
 {
-	[ ! -f $WHITELISTLOCATION ] && echo -e "# This file is part of $SCRIPTNAME\n# Add one IP per line to this file. These IP addresses will be never blocked. Note: Only IPv4 addresses are supported.\n# More info on GitHub: https://github.com/Feriman22/portscan-protection\n# If you found it useful, please donate via PayPal: https://paypal.me/BajzaFerenc\n# Thank you!\n\n127.0.0.1" > $WHITELISTLOCATION
-	if which nano > /dev/null; then
-		nano $WHITELISTLOCATION
-		$SCRIPTLOCATION --cron ; echo -e "Whitelist IPs activated if the file changed."
-	elif which vi > /dev/null; then
-		vi $WHITELISTLOCATION
-		$SCRIPTLOCATION --cron ; echo -e "Whitelist IPs activated if the file changed."
-	elif which vim > /dev/null; then
-		vim $WHITELISTLOCATION
-		$SCRIPTLOCATION --cron ; echo -e "Whitelist IPs activated if the file changed."
-	else
-		echo "nano, vi or vim not found. Edit manually the whitelist: $WHITELISTLOCATION"
-	fi
+	[ ! -f "$WHITELISTLOCATION" ] && echo -e "# This file is part of $SCRIPTNAME\n# Add one IP per line to this file. These IP addresses will be never blocked. Note: Only IPv4 addresses are supported.\n# More info on GitHub: https://github.com/Feriman22/portscan-protection\n# If you found it useful, please donate via PayPal: https://paypal.me/BajzaFerenc\n# Thank you!\n\n127.0.0.1" > $WHITELISTLOCATION
+	for i in nano vi vim; do
+		if which $i > /dev/null; then
+			$i "$WHITELISTLOCATION"
+			"$SCRIPTLOCATION" --cron
+			echo -e "Whitelist IPs activated if the file changed." ; FOUND="1"
+			break
+		fi
+	done
+	[ "$FOUND" != "1" ] && echo "nano, vi or vim not found. Edit manually the whitelist: $WHITELISTLOCATION"
 }
 
 
 UPDATE()
 {
 	# Getting info about the latest GitHub version
-	NEW=$(curl -s https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection.sh | awk -F'"' '/^VERSION/ {print $2}')
+	NEW=$(curl -s "$GITHUBRAW" | awk -F'"' '/^VERSION/ {print $2}')
 
 	# Compare the installed and the GitHub stored version - Only internal, not available by any argument
 	if [[ "$1" == "ONLYCHECK" ]] && [[ "$NEW" != "$VERSION" ]]; then
 		[ "$1" != '--cron' ] && echo -e "New version ${GR}available!${NC}"
 	else
-		[[ "$1" == "ONLYCHECK" ]] && [ "$1" != '--cron' ] && echo -e "The script is ${GR}up to date.${NC}"
+		[[ "$1" == "ONLYCHECK" ]] && [ "$1" != '--cron' ] && echo -e "$SCRIPTNAME is ${GR}up to date.${NC}"
 	fi
 
 	# Check the current installation
@@ -70,11 +68,11 @@ UPDATE()
 
 		# Compare the installed and the GitHub stored version
 		if [[ "$NEW" != "$VERSION" ]]; then
-			curl -s https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection.sh -O $SCRIPTLOCATION
+			curl -s -o "$SCRIPTLOCATION" "$GITHUBRAW"
 			SETCRONTAB
 			[ "$1" != '--cron' ] && echo -e "Script has been ${GR}updated.${NC}"
 		else
-			[ "$1" != '--cron' ] && echo -e "The script is ${GR}up to date.${NC}"
+			[ "$1" != '--cron' ] && echo -e "$SCRIPTNAME is ${GR}up to date.${NC}"
 		fi
 	else
 		[[ "$1" != "ONLYCHECK" ]] && [ "$1" != '--cron' ] && echo -e "Script ${RED}not installed.${NC} Install first then you can update it."
@@ -95,11 +93,15 @@ if [ "$1" != '--cron' ]; then
 	echo "Open GitHub page to read the manual and check new releases"
 	echo "Current version: $VERSION"
 	UPDATE ONLYCHECK # Check new version
-	echo -e "${GR}If you found it useful, please donate via PayPal: https://paypal.me/BajzaFerenc${NC}\n"
+	echo -e "${GR}If you found it useful${NC}, please donate via PayPal: https://paypal.me/BajzaFerenc\n"
 fi
 
 # Check the root permission
-[ ! $(id -u) = 0 ] && echo -e "${RED}Run as root!${NC} Exiting...\n" && exit 5
+[ ! $(id -u) = 0 ] && echo -e "${RED}Run as root!${NC}\n" && exit 5
+
+# Check curl, ipset, iptables commands
+for i in curl ipset iptables; do ! which ipset > /dev/null && echo "$i command ${RED}not found${NC}" && NOT_FOUND=1; done
+[ "NOT_FOUND" == "1" ] && exit 10
 
 # Define ipset and iptable rules - Used at magic and uninstall part
 IPSET1='port_scanners hash:ip family inet hashsize 32768 maxelem 65536 timeout 600'
@@ -144,8 +146,8 @@ if [ "$1" == "-i" ] || [ "$1" == "-u" ] || [ "$1" == "-v" ] || [ "$1" == "--inst
 	OPT="$1" && OPTL="$1" && ARG="YES"
 else
 	PS3='Please enter your choice: '
-	[ -f $SCRIPTLOCATION ] && options=("Verify" "Edit Whitelist" "Update the script" "Uninstall" "Quit")
-	[ ! -f $SCRIPTLOCATION ] && options=("Install" "Verify" "Quit")
+	[ -f "$SCRIPTLOCATION" ] && options=("Verify" "Edit Whitelist" "Update from GitHub" "Uninstall" "Quit")
+	[ ! -f "$SCRIPTLOCATION" ] && options=("Install" "Verify" "Quit")
 	select opt in "${options[@]}"
 	do
 		case $opt in
@@ -156,13 +158,13 @@ else
 				OPT='-u' && OPTL='--uninstall' && break
 				;;
 			"Edit Whitelist")
-				WHITELIST && break
+				WHITELIST ; break
 				;;
 			"Verify")
 				OPT='-v' && OPTL='--verify' && break
 				;;
-			"Update the script")
-				OPT='-up' && OPTL='--update' && break
+			"Update from GitHub")
+				UPDATE && break
 				;;
 			"Quit")
 				break
@@ -195,18 +197,17 @@ if [ "$OPT" == '-i' ] || [ "$OPTL" == '--install' ]; then
 	# Copy the script to $SCRIPTLOCATION and add execute permission
 	INSTALLERLOCATION=$(realpath $0)
 	if [ "$INSTALLERLOCATION" != "$SCRIPTLOCATION" ]; then
-		cp -rf "$INSTALLERLOCATION" /usr/local/sbin/ && chmod +x "$SCRIPTLOCATION" && echo -e "This script has been copied in $SCRIPTLOCATION ${GR}OK.${NC}"
-		rm "$INSTALLERLOCATION"
-		ln -s "$SCRIPTLOCATION" "$INSTALLERLOCATION"
+		curl -s -o "$SCRIPTLOCATION" "$GITHUBRAW" && chmod +x "$SCRIPTLOCATION" && echo -e "$SCRIPTNAME has been copied in $SCRIPTLOCATION ${GR}OK.${NC}"
 	else
-		echo -e "The script already copied to destination or has been updated. Nothing to do. ${GR}OK.${NC}"
+		echo -e "$SCRIPTNAME already copied to destination. Nothing to do. ${GR}OK.${NC}"
 	fi
 
 	# First cron like run to activate the iptable rules
-	$SCRIPTLOCATION --cron && echo -e "iptable rules have been activated. You are protected! ${GR}OK.${NC}\n"
+	"$SCRIPTLOCATION" --cron && echo -e "iptable rules have been activated. You are protected! ${GR}OK.${NC}\n"
 
-	# Happy ending.
-	echo -e "${GR}Done.${NC} Full install time was $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec. That was so quick, wasn't?"
+	# Finish
+	echo -e "\n${GR}Note:${NC} If you want to Edit Whitelist or Verify the install, just run the below command:\nsudo $SCRIPTLOCATION\n"
+	echo -e "${GR}Done.${NC} The install was $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec. That was so quick, wasn't?"
 fi
 
 
@@ -247,7 +248,7 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 	fi
 
 	# Remove the script
-	[ -f "$SCRIPTLOCATION" ] && rm -f "$SCRIPTLOCATION" && echo -e "The script removed. ${GR}OK.${NC}" || echo -e "Script not found. ${GR}OK.${NC}"
+	[ -f "$SCRIPTLOCATION" ] && rm -f "$SCRIPTLOCATION" && echo -e "$SCRIPTNAME removed. ${GR}OK.${NC}" || echo -e "Script not found. ${GR}OK.${NC}"
 
 	# Remove iptable rules
 	N=1
@@ -286,6 +287,9 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 			echo -e "$IPSTERULE ipset rule not found. ${GR}OK.${NC}"
 		fi
 	done
+
+	echo -e "\nIf the $SCRIPTNAME removed accidently, run this below command to install it again:\n"
+	echo -e "curl -s $GITHUBRAW | sudo bash /dev/stdin -i\n"
 fi
 
 ##
