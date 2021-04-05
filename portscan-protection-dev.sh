@@ -15,14 +15,14 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 IPSETCOMMANDCHECK()
 {
 	# Check the ipset command
-	! which ipset > /dev/null && echo -e "\nipset command ${RED}not found${NC}. Exiting...\n" && exit 6 || echo -e "ipset command found. ${GR}OK.${NC}"
+	! which ipset > /dev/null && echo -e "\nipset command ${RED}not found${NC}.\n" && exit 6 || echo -e "ipset command found. ${GR}OK.${NC}"
 }
 
 
 IPTABLECOMMANDCHECK()
 {
 	# Check the iptables command
-	! which iptables > /dev/null && echo -e "iptables command ${RED}not found${NC}. Exiting...\n" && exit 7 || echo -e "iptables command found. ${GR}OK.${NC}"
+	! which iptables > /dev/null && echo -e "iptables command ${RED}not found${NC}.\n" && exit 7 || echo -e "iptables command found. ${GR}OK.${NC}"
 }
 
 
@@ -38,9 +38,8 @@ WHITELIST()
 	for i in nano vi vim; do
 		if which $i > /dev/null; then
                 	$i $WHITELISTLOCATION
-			FOUND="1"
                 	$SCRIPTLOCATION --cron
-			echo -e "Whitelist IPs activated if the file changed."
+			echo -e "Whitelist IPs activated if the file changed." ; FOUND="1"
 			break
 		fi
 	done
@@ -51,7 +50,7 @@ WHITELIST()
 UPDATE()
 {
 	# Getting info about the latest GitHub version
-	NEW=$(curl -s $GITHUBRAW | awk -F'"' '/^VERSION/ {print $2}')
+	NEW=$(curl -s "$GITHUBRAW" | awk -F'"' '/^VERSION/ {print $2}')
 
 	# Compare the installed and the GitHub stored version - Only internal, not available by any argument
 	if [[ "$1" == "ONLYCHECK" ]] && [[ "$NEW" != "$VERSION" ]]; then
@@ -94,11 +93,11 @@ if [ "$1" != '--cron' ]; then
 	echo "Open GitHub page to read the manual and check new releases"
 	echo "Current version: $VERSION"
 	UPDATE ONLYCHECK # Check new version
-	echo -e "${GR}If you found it useful, please donate via PayPal: https://paypal.me/BajzaFerenc${NC}\n"
+	echo -e "${GR}If you found it useful${NC}, please donate via PayPal: https://paypal.me/BajzaFerenc\n"
 fi
 
 # Check the root permission
-[ ! $(id -u) = 0 ] && echo -e "${RED}Run as root!${NC} Exiting...\n" && exit 5
+[ ! $(id -u) = 0 ] && echo -e "${RED}Run as root!${NC}\n" && exit 5
 
 # Check curl, ipset, iptables commands
 for i in curl ipset iptables; do ! which ipset > /dev/null && echo "$i command ${RED}not found${NC}" && NOT_FOUND=1; done
@@ -147,7 +146,7 @@ if [ "$1" == "-i" ] || [ "$1" == "-u" ] || [ "$1" == "-v" ] || [ "$1" == "--inst
 	OPT="$1" && OPTL="$1" && ARG="YES"
 else
 	PS3='Please enter your choice: '
-	[ -f $SCRIPTLOCATION ] && options=("Verify" "Edit Whitelist" "Update the script" "Uninstall" "Quit")
+	[ -f $SCRIPTLOCATION ] && options=("Verify" "Edit Whitelist" "Update from GitHub" "Uninstall" "Quit")
 	[ ! -f $SCRIPTLOCATION ] && options=("Install" "Verify" "Quit")
 	select opt in "${options[@]}"
 	do
@@ -164,7 +163,7 @@ else
 			"Verify")
 				OPT='-v' && OPTL='--verify' && break
 				;;
-			"Update the script")
+			"Update from GitHub")
 				UPDATE && break
 				;;
 			"Quit")
@@ -206,8 +205,9 @@ if [ "$OPT" == '-i' ] || [ "$OPTL" == '--install' ]; then
 	# First cron like run to activate the iptable rules
 	$SCRIPTLOCATION --cron && echo -e "iptable rules have been activated. You are protected! ${GR}OK.${NC}\n"
 
-	# Happy ending.
-	echo -e "${GR}Done.${NC} Full install time was $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec. That was so quick, wasn't?"
+	# Finish
+        echo -e "\n${GR}Note:${NC} If you want to Edit Whitelist or Verify the install, just run the below command:\n$SCRIPTLOCATION\n"
+	echo -e "${GR}Done.${NC} The install was $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec. That was so quick, wasn't?"
 fi
 
 
@@ -287,6 +287,9 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 			echo -e "$IPSTERULE ipset rule not found. ${GR}OK.${NC}"
 		fi
 	done
+
+	echo -e "\nIf $SCRIPTNAME removed accidently, run this below command to install it again:\n"
+	echo -e "curl -s https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection-dev.sh | sudo bash /dev/stdin -i\n"
 fi
 
 ##
