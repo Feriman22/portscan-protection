@@ -1,10 +1,10 @@
 #!/bin/bash
-SCRIPTNAME="Portscan Protection DEV"
-VERSION="04-04-2021"
-SCRIPTLOCATION="/usr/local/sbin/portscan-protection-dev.sh"
+SCRIPTNAME="Portscan Protection"
+VERSION="05-04-2021"
+SCRIPTLOCATION="/usr/local/sbin/portscan-protection.sh"
 WHITELISTLOCATION="/usr/local/sbin/portscan-protection-white.list"
 CRONLOCATION="/etc/cron.d/portscan-protection"
-GITHUBRAW="https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection-dev.sh"
+GITHUBRAW="https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection.sh"
 AUTOUPDATE="YES" # Edit this variable to "NO" if you don't want to auto update this script (NOT RECOMMENDED)
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
@@ -34,11 +34,11 @@ SETCRONTAB()
 
 WHITELIST()
 {
-	[ ! -f $WHITELISTLOCATION ] && echo -e "# This file is part of $SCRIPTNAME\n# Add one IP per line to this file. These IP addresses will be never blocked. Note: Only IPv4 addresses are supported.\n# More info on GitHub: https://github.com/Feriman22/portscan-protection\n# If you found it useful, please donate via PayPal: https://paypal.me/BajzaFerenc\n# Thank you!\n\n127.0.0.1" > $WHITELISTLOCATION
+	[ ! -f "$WHITELISTLOCATION" ] && echo -e "# This file is part of $SCRIPTNAME\n# Add one IP per line to this file. These IP addresses will be never blocked. Note: Only IPv4 addresses are supported.\n# More info on GitHub: https://github.com/Feriman22/portscan-protection\n# If you found it useful, please donate via PayPal: https://paypal.me/BajzaFerenc\n# Thank you!\n\n127.0.0.1" > $WHITELISTLOCATION
 	for i in nano vi vim; do
 		if which $i > /dev/null; then
-                	$i $WHITELISTLOCATION
-                	$SCRIPTLOCATION --cron
+			$i "$WHITELISTLOCATION"
+			"$SCRIPTLOCATION" --cron
 			echo -e "Whitelist IPs activated if the file changed." ; FOUND="1"
 			break
 		fi
@@ -138,7 +138,7 @@ if [ "$1" == '--cron' ]; then
 	[ "$AUTOUPDATE" == "YES" ] && UPDATE --cron
 
 	# Exit, because it run by cron
-	exit
+	exit 0
 fi
 
 # Call the menu
@@ -146,8 +146,8 @@ if [ "$1" == "-i" ] || [ "$1" == "-u" ] || [ "$1" == "-v" ] || [ "$1" == "--inst
 	OPT="$1" && OPTL="$1" && ARG="YES"
 else
 	PS3='Please enter your choice: '
-	[ -f $SCRIPTLOCATION ] && options=("Verify" "Edit Whitelist" "Update from GitHub" "Uninstall" "Quit")
-	[ ! -f $SCRIPTLOCATION ] && options=("Install" "Verify" "Quit")
+	[ -f "$SCRIPTLOCATION" ] && options=("Verify" "Edit Whitelist" "Update from GitHub" "Uninstall" "Quit")
+	[ ! -f "$SCRIPTLOCATION" ] && options=("Install" "Verify" "Quit")
 	select opt in "${options[@]}"
 	do
 		case $opt in
@@ -203,10 +203,10 @@ if [ "$OPT" == '-i' ] || [ "$OPTL" == '--install' ]; then
 	fi
 
 	# First cron like run to activate the iptable rules
-	$SCRIPTLOCATION --cron && echo -e "iptable rules have been activated. You are protected! ${GR}OK.${NC}\n"
+	"$SCRIPTLOCATION" --cron && echo -e "iptable rules have been activated. You are protected! ${GR}OK.${NC}\n"
 
 	# Finish
-        echo -e "\n${GR}Note:${NC} If you want to Edit Whitelist or Verify the install, just run the below command:\n$SCRIPTLOCATION\n"
+	echo -e "\n${GR}Note:${NC} If you want to Edit Whitelist or Verify the install, just run the below command:\nsudo $SCRIPTLOCATION\n"
 	echo -e "${GR}Done.${NC} The install was $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec. That was so quick, wasn't?"
 fi
 
@@ -288,8 +288,8 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 		fi
 	done
 
-	echo -e "\nIf $SCRIPTNAME removed accidently, run this below command to install it again:\n"
-	echo -e "curl -s https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection-dev.sh | sudo bash /dev/stdin -i\n"
+	echo -e "\nIf the $SCRIPTNAME removed accidently, run this below command to install it again:\n"
+	echo -e "curl -s $GITHUBRAW | sudo bash /dev/stdin -i\n"
 fi
 
 ##
