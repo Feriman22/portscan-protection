@@ -54,7 +54,7 @@ UPDATE()
 
 	# Compare the installed and the GitHub stored version - Only internal, not available by any argument
 	if [[ "$1" == "ONLYCHECK" ]] && [[ "$NEW" != "$VERSION" ]]; then
-		[ "$1" != '--cron' ] && echo -e "New version ${GR}available!${NC}"
+		[ "$1" != '--cron' ] && echo -e "New version ${YL}available!${NC}"
 	else
 		[[ "$1" == "ONLYCHECK" ]] && [ "$1" != '--cron' ] && echo -e "$SCRIPTNAME is ${GR}up to date.${NC}"
 	fi
@@ -101,7 +101,7 @@ fi
 
 # Check curl, ipset, iptables commands
 for i in curl ipset iptables; do ! which ipset > /dev/null && echo "$i command ${RED}not found${NC}" && NOT_FOUND=1; done
-[ "NOT_FOUND" == "1" ] && exit 10
+[ "$NOT_FOUND" == "1" ] && exit 10
 
 # Define ipset and iptable rules - Used at magic and uninstall part
 IPSET1='port_scanners hash:ip family inet hashsize 32768 maxelem 65536 timeout 600'
@@ -278,13 +278,13 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 	[ -f "$WHITELISTLOCATION" ] && rm -f "$WHITELISTLOCATION" && echo -e "Whitelist removed. ${GR}OK.${NC}" || echo -e "Whitelist not found. ${GR}OK.${NC}"
 
 	# Remove ipset rules
-	for IPSTERULE in scanned_ports port_scanners; do
+	for IPSETRULE in scanned_ports port_scanners; do
 		if [ $(ipset list | grep -c "$IPSETRULE") -gt 0 ]; then
 			sleep 1
 			ipset destroy $IPSETRULE
-			echo -e "$IPSTERULE ipset rule has been removed. ${GR}OK.${NC}"
+			echo -e "$IPSETRULE ipset rule has been removed. ${GR}OK.${NC}"
 		else
-			echo -e "$IPSTERULE ipset rule not found. ${GR}OK.${NC}"
+			echo -e "$IPSETRULE ipset rule not found. ${GR}OK.${NC}"
 		fi
 	done
 
