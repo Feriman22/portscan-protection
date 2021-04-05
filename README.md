@@ -10,13 +10,13 @@ Hackers and kiddie scripts always scan servers and look for open ports. If they 
 
 1. **Install cURL and ipset:**
 - Ubuntu/Debian:
->*apt update && apt install curl ipset*
+    - >*apt update && apt install curl ipset -y*
 - RedHat/CentOS:
->*yum install curl ipset*
+   - >*yum install curl ipset -y*
 2. **Install Portscan Portection directly from GitHub:**
 >*curl -s https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection.sh | sudo bash /dev/stdin -i*
 
-If you run it without any argument, you have few options:
+If you run it without argument, you have few options:
 1. Install *# Available only if not installed yet*
 2. Uninstall *# Available only if already installed*
 3. Edit Whitelist *# Available only if already installed*
