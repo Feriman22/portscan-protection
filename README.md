@@ -3,32 +3,25 @@
 ## Description
 Hackers and kiddie scripts always scan servers and look for open ports. If they find one (for example your SSH port), they will try to crack it. This script helps you to avoid becoming a victim of portscan attack on Linux systems with built-in firewall protection (iptables). If they try to knock on ports too quickly, the script will automagically block the attacker's IP address in the iptable.
 
-*The menu before install*  
-![Screenshot](https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection-not-installed-screenshot.png)  
-
 *The menu after install*  
 ![Screenshot](https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection-installed-screenshot.png)
 
 ## Installation
 
-0. **Install cURL and ipset:**
+1. **Install cURL and ipset:**
 - Ubuntu/Debian:
 >*apt update && apt install curl ipset*
 - RedHat/CentOS:
 >*yum install curl ipset*
-1. **Download the script from GitHub:**
->*curl -s https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection.sh -O portscan-protection.sh*
-2. **Add execute permission:**
->*chmod +x ./portscan-protection.sh*
-3. **Install the script:**
->*sudo ./portscan-protection.sh --install*
+2. **Install Portscan Portection directly from GitHub:**
+>*curl -s https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection.sh | sudo bash /dev/stdin -i*
 
 If you run it without any argument, you have few options:
 1. Install *# Available only if not installed yet*
 2. Uninstall *# Available only if already installed*
 3. Edit Whitelist *# Available only if already installed*
 4. Verify
-5. Update the script *# Available only if already installed*
+5. Update from GitHub *# Available only if already installed*
 6. Quit
 
 The `Install` process copies the script to the */usr/local/sbin* folder and then creates a new cron rule in the file called *portscan-protection* in the */etc/cron.d* folder. It is executed once by itself to enable the ipset/iptable rules, and every startup, so your server is protected at all times.
@@ -40,7 +33,7 @@ The `Edit Whitelist` option allow to add IPv4 addresses to the whitelist. Add on
 
 The `Verify` process checks the crontab entry, the location of the script, the execution permission, the ipset/iptables commands and the active firewall rules.
 
-The `Update the script` process updates the installed script. You cannot update it before installation!
+The `Update from GitHub` process updates the installed script. You cannot update it before installation!
 
 ## Daily use
 
@@ -58,10 +51,10 @@ If you want to use this script somewhere else (e.g. in an OS installer script), 
   Verify the installation
   
 -up, --update\
-  Update the script
+  Update the script from GitHub
   
 --cron\
-  Run the script like the crontab do. It will only set ipset/iptable rules and auto-update the script if not disabled. No output.
+  Run the script like the crontab does. It will only set ipset/iptable rules and auto-update the script if not disabled. No output.
 
 
 I added some exit codes in 28-04-2020 release. These codes documented here:
@@ -74,14 +67,13 @@ I added some exit codes in 28-04-2020 release. These codes documented here:
 | 7  | iptables command not found |
 | 8  | GitHub is not available  |
 | 9  | Choosed *No* at Uninstall |
+| 10  | curl, iptables or ipset command not found |
 | 130  | Script canceled by *ctrl + c* |
 
 ## How to update
 
 The script will automatically update itself after reboot. *If you want to disable it, modify the 7th line in the script.*  
-However to manually update, run the script and choose "Update the script" or run with --update argument like this:  
-`portscan-protection.sh --update`  
-or  
+However to manually update, run the script and choose "Update the script" or run with --update argument like this:    
 `/usr/local/sbin/portscan-protection.sh --update`
 
 ## The future
@@ -90,6 +82,12 @@ or
 - Easier way to disable auto-update function
 
 ## Changelog
+
+>05-04-2021
+- Whitelist editor improved
+- Installer not copied twice on the server thanks to direct install from GitHub
+- cURL, iptables and ipset command verification (Exit code 10)
+- Small text modifications
 
 >04-04-2021
 - Whitelist function
