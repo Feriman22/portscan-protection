@@ -80,6 +80,7 @@ However to manually update, run the script and choose "Update the script" or run
 
 - Reinstall function
 - Easier way to disable auto-update function
+- Verify that the root's cron is enabled or not
 
 ## Changelog
 
