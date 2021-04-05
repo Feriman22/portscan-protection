@@ -138,7 +138,7 @@ if [ "$1" == '--cron' ]; then
 	[ "$AUTOUPDATE" == "YES" ] && UPDATE --cron
 
 	# Exit, because it run by cron
-	exit
+	exit 0
 fi
 
 # Call the menu
