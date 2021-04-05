@@ -1,10 +1,10 @@
 #!/bin/bash
-SCRIPTNAME="Portscan Protection"
+SCRIPTNAME="Portscan Protection DEV"
 VERSION="05-04-2021"
-SCRIPTLOCATION="/usr/local/sbin/portscan-protection.sh"
+SCRIPTLOCATION="/usr/local/sbin/portscan-protection-dev.sh"
 WHITELISTLOCATION="/usr/local/sbin/portscan-protection-white.list"
 CRONLOCATION="/etc/cron.d/portscan-protection"
-GITHUBRAW="https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection.sh"
+GITHUBRAW="https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection-dev.sh"
 AUTOUPDATE="YES" # Edit this variable to "NO" if you don't want to auto update this script (NOT RECOMMENDED)
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
