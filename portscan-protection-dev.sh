@@ -36,26 +36,15 @@ WHITELIST()
 {
 	[ ! -f $WHITELISTLOCATION ] && echo -e "# This file is part of $SCRIPTNAME\n# Add one IP per line to this file. These IP addresses will be never blocked. Note: Only IPv4 addresses are supported.\n# More info on GitHub: https://github.com/Feriman22/portscan-protection\n# If you found it useful, please donate via PayPal: https://paypal.me/BajzaFerenc\n# Thank you!\n\n127.0.0.1" > $WHITELISTLOCATION
 	for i in nano vi vim; do
-		if which nano > /dev/null; then
+		if which $i > /dev/null; then
                 	$i $WHITELISTLOCATION
-                	$SCRIPTLOCATION --cron ; echo -e "Whitelist IPs activated if the file changed." ; FOUND="1"
+			FOUND="1"
+                	$SCRIPTLOCATION --cron
+			echo -e "Whitelist IPs activated if the file changed."
 			break
 		fi
-		[ "$FOUND" != "1" ] && echo "nano, vi or vim not found. Edit manually the whitelist: $WHITELISTLOCATION"
 	done
-
-#	if which nano > /dev/null; then
-#		nano $WHITELISTLOCATION
-#		$SCRIPTLOCATION --cron ; echo -e "Whitelist IPs activated if the file changed."
-#	elif which vi > /dev/null; then
-#		vi $WHITELISTLOCATION
-#		$SCRIPTLOCATION --cron ; echo -e "Whitelist IPs activated if the file changed."
-#	elif which vim > /dev/null; then
-#		vim $WHITELISTLOCATION
-#		$SCRIPTLOCATION --cron ; echo -e "Whitelist IPs activated if the file changed."
-#	else
-#		echo "nano, vi or vim not found. Edit manually the whitelist: $WHITELISTLOCATION"
-#	fi
+	[ "$FOUND" != "1" ] && echo "nano, vi or vim not found. Edit manually the whitelist: $WHITELISTLOCATION"
 }
 
 
@@ -80,7 +69,7 @@ UPDATE()
 
 		# Compare the installed and the GitHub stored version
 		if [[ "$NEW" != "$VERSION" ]]; then
-			curl -s "$GITHUBRAW" -O "$SCRIPTLOCATION"
+			curl -s -o "$SCRIPTLOCATION" "$GITHUBRAW"
 			SETCRONTAB
 			[ "$1" != '--cron' ] && echo -e "Script has been ${GR}updated.${NC}"
 		else
@@ -170,7 +159,7 @@ else
 				OPT='-u' && OPTL='--uninstall' && break
 				;;
 			"Edit Whitelist")
-				WHITELIST && break
+				WHITELIST ; break
 				;;
 			"Verify")
 				OPT='-v' && OPTL='--verify' && break
@@ -209,9 +198,9 @@ if [ "$OPT" == '-i' ] || [ "$OPTL" == '--install' ]; then
 	# Copy the script to $SCRIPTLOCATION and add execute permission
 	INSTALLERLOCATION=$(realpath $0)
 	if [ "$INSTALLERLOCATION" != "$SCRIPTLOCATION" ]; then
-		curl -s "$GITHUBRAW" -O "$SCRIPTLOCATION" && chmod +x "$SCRIPTLOCATION" && echo -e "$SCRIPTNAME has been copied in $SCRIPTLOCATION ${GR}OK.${NC}"
+		curl -s -o "$SCRIPTLOCATION" "$GITHUBRAW" && chmod +x "$SCRIPTLOCATION" && echo -e "$SCRIPTNAME has been copied in $SCRIPTLOCATION ${GR}OK.${NC}"
 	else
-		echo -e "$SCRIPTNAME already copied to destination or has been updated. Nothing to do. ${GR}OK.${NC}"
+		echo -e "$SCRIPTNAME already copied to destination. Nothing to do. ${GR}OK.${NC}"
 	fi
 
 	# First cron like run to activate the iptable rules
