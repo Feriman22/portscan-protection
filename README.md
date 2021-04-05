@@ -8,11 +8,11 @@ Hackers and kiddie scripts always scan servers and look for open ports. If they 
 
 ## Installation
 
-1. **Install cURL and ipset:**
+1. **Install cURL, iptables and ipset:**
 - Ubuntu/Debian:
-    - >*apt update && apt install curl ipset -y*
+    - >*apt update && apt install curl iptables ipset -y*
 - RedHat/CentOS:
-   - >*yum install curl ipset -y*
+   - >*yum install curl iptables ipset -y*
 2. **Install Portscan Portection directly from GitHub:**
 >*curl -s https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection.sh | sudo bash /dev/stdin -i*
 
