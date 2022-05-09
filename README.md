@@ -76,7 +76,7 @@ The script will automatically update itself after reboot. *If you want to disabl
 However to manually update, run the script and choose "Update the script" or run with --update argument like this:    
 `/usr/local/sbin/portscan-protection.sh --update`
 
-## The future
+## Roadmap
 
 - Reinstall function
 - Easier way to disable auto-update function
