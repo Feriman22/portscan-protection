@@ -82,6 +82,7 @@ However to manually update, run the script and choose "Update the script" or run
 - Easier way to disable auto-update function
 - Verify that the root's cron is enabled or not
 - Adding support for nftables
+- Support custom SSH port
 
 ## Changelog
 
