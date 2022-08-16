@@ -239,9 +239,9 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 	# Remove crontab file
 	if [ -f "$CRONLOCATION" ]; then
 		rm -r "$CRONLOCATION"
-		printf "\nCrontab file has been removed. ${GR}OK.${NC}"
+		printf "\nCrontab file has been removed. ${GR}OK.${NC}\n"
 	else
-		printf "\nCrontab file not found. ${GR}OK.${NC}"
+		printf "\nCrontab file not found. ${GR}OK.${NC}\n"
 	fi
 
 	# Remove the script
@@ -252,7 +252,7 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 	for IPTABLERULE in "$IPTABLE1" "$IPTABLE2" "$IPTABLE3" "$IPTABLE4"; do
 		if [ $(iptables -S | grep -cF -- "-A $IPTABLERULE") -gt 0 ]; then
 			iptables -D $IPTABLERULE
-			printf "#$N iptable rule has been removed. ${GR}OK.${NC}"
+			printf "#$N iptable rule has been removed. ${GR}OK.${NC}\n"
 			(( N = N + 1 ))
 		else
 			printf "#$N iptable rule not found. ${GR}OK.${NC}"
