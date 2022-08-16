@@ -33,7 +33,7 @@ The `Edit Whitelist` option allow to add IPv4 addresses to the whitelist. Add on
 
 The `Verify` process checks the crontab entry, the location of the script, the execution permission, the ipset/iptables commands and the active firewall rules.
 
-The `Update from GitHub` process updates the installed script. You cannot update it before installation!
+The `Update from GitHub` process updates the installed script. You cannot update it before the installation!
 
 ## Daily use
 
