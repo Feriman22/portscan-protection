@@ -88,7 +88,7 @@ However to manually update, run the script and choose "Update the script" or run
 
 >16-08-2022
 - Bugfix: iptables flush has been removed
-- using _printf_ instead of _echo -e_
+- Using _printf_ instead of _echo -e_
 - Small text modifications
 
 >05-04-2021
