@@ -86,6 +86,11 @@ However to manually update, run the script and choose "Update the script" or run
 
 ## Changelog
 
+>16-08-2022
+- Bugfix: iptables flush has been removed
+- using _printf_ instead of _echo -e_
+- Small text modifications
+
 >05-04-2021
 - Whitelist editor improved
 - Installer not copied twice on the server thanks to direct install from GitHub
