@@ -66,7 +66,7 @@ Exit codes:
 | 6  | ipset command not found |
 | 7  | iptables command not found |
 | 8  | GitHub is not available  |
-| 9  | Choosed *No* at Uninstall |
+| 9  | Answered *No* at Uninstall |
 | 10  | curl, iptables or ipset command not found |
 | 130  | Script canceled by *ctrl + c* |
 
