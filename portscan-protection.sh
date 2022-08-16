@@ -245,7 +245,7 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 	fi
 
 	# Remove the script
-	[ -f "$SCRIPTLOCATION" ] && rm -f "$SCRIPTLOCATION" && printf "$SCRIPTNAME has been removed. ${GR}OK.${NC}" || printf "Script not found. ${GR}OK.${NC}"
+	[ -f "$SCRIPTLOCATION" ] && rm -f "$SCRIPTLOCATION" && printf "$SCRIPTNAME has been removed. ${GR}OK.${NC}\n" || printf "Script not found. ${GR}OK.${NC}\n"
 
 	# Remove iptable rules
 	N=1
@@ -272,16 +272,16 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 	fi
 
 	# Remove Whitelist
-	[ -f "$WHITELISTLOCATION" ] && rm -f "$WHITELISTLOCATION" && printf "Whitelist has been removed. ${GR}OK.${NC}" || printf "Whitelist not found. ${GR}OK.${NC}"
+	[ -f "$WHITELISTLOCATION" ] && rm -f "$WHITELISTLOCATION" && printf "Whitelist has been removed. ${GR}OK.${NC}\n" || printf "Whitelist not found. ${GR}OK.${NC}\n"
 
 	# Remove ipset rules
 	for IPSETRULE in scanned_ports port_scanners; do
 		if [ $(ipset list | grep -c "$IPSETRULE") -gt 0 ]; then
 			sleep 1
 			ipset destroy $IPSETRULE
-			printf "$IPSETRULE ipset rule has been removed. ${GR}OK.${NC}"
+			printf "$IPSETRULE ipset rule has been removed. ${GR}OK.${NC}\n"
 		else
-			printf "$IPSETRULE ipset rule not found. ${GR}OK.${NC}"
+			printf "$IPSETRULE ipset rule not found. ${GR}OK.${NC}\n"
 		fi
 	done
 
@@ -296,30 +296,30 @@ fi
 if [ "$OPT" == '-v' ] || [ "$OPTL" == '--verify' ]; then
 
 	# Crontab verify
-	[ ! -f "$CRONLOCATION" ] && printf "\nCrontab entry ${RED}not found.${NC}" || printf "\nCrontab entry found. ${GR}OK.${NC}"
+	[ ! -f "$CRONLOCATION" ] && printf "\nCrontab entry ${RED}not found.${NC}"\n || printf "\nCrontab entry found. ${GR}OK.${NC}\n"
 
 	# Verify script location
 	if [ -f "$SCRIPTLOCATION" ]; then
-		printf "Script found. ${GR}OK.${NC}"
+		printf "Script found. ${GR}OK.${NC}\n"
 
 		# Verify execute permission
-		[ -x "$SCRIPTLOCATION" ] && printf "The script is executable. ${GR}OK.${NC}" || printf "The execute permission is ${RED}missing.${NC} Fix it by run: chmod +x $SCRIPTLOCATION"
+		[ -x "$SCRIPTLOCATION" ] && printf "The script is executable. ${GR}OK.${NC}\n" || printf "The execute permission is ${RED}missing.${NC} Fix it by run: chmod +x $SCRIPTLOCATION\n"
 
 	else
-		printf "Script ${RED}not found.${NC}"
+		printf "Script ${RED}not found.${NC}\n"
 	fi
 
 	IPSETCOMMANDCHECK
 
 	IPTABLECOMMANDCHECK
 
-	[ $(iptables -S | grep -c port_scanners) -gt 0 ] && [ $(iptables -S | grep -c scanned_ports) -gt 0 ] && printf "iptables rules have been configured. You are protected! ${GR}OK.${NC}" || printf "iptables rules are ${RED}not configured!${NC}"
+	[ $(iptables -S | grep -c port_scanners) -gt 0 ] && [ $(iptables -S | grep -c scanned_ports) -gt 0 ] && printf "iptables rules have been configured. You are protected! ${GR}OK.${NC}\n" || printf "iptables rules are ${RED}not configured!${NC}\n"
 
 	if [ -f $WHITELISTLOCATION ]; then
 		while read WHILELISTIP; do
 			# Validate IP address
 			if [[ ! "$WHILELISTIP" =~ ^(([1-9]?[0-9]|1[0-9][0-9]|2([0-4][0-9]|5[0-5]))\.){3}([1-9]?[0-9]|1[0-9][0-9]|2([0-4][0-9]|5[0-5]))$ ]]; then
-				printf "$WHILELISTIP is ${RED}not valid${NC} IPv4 address in the Whitelist and it will be ignored. May you have to fix it by choose Edit Whitelist from the menu."
+				printf "$WHILELISTIP is ${RED}not valid${NC} IPv4 address in the Whitelist and it will be ignored. May you have to fix it by choose Edit Whitelist from the menu.\n"
 			fi
 		done < <(grep -v "^#\|^$" $WHITELISTLOCATION)
 	fi
