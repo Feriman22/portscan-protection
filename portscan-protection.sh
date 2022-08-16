@@ -1,6 +1,6 @@
 #!/bin/bash
 SCRIPTNAME="Portscan Protection"
-VERSION="05-04-2021"
+VERSION="16-08-2022"
 SCRIPTLOCATION="/usr/local/sbin/portscan-protection.sh"
 WHITELISTLOCATION="/usr/local/sbin/portscan-protection-white.list"
 CRONLOCATION="/etc/cron.d/portscan-protection"
@@ -15,31 +15,31 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 IPSETCOMMANDCHECK()
 {
 	# Check the ipset command
-	! which ipset > /dev/null && echo -e "\nipset command ${RED}not found${NC}.\n" && exit 6 || echo -e "ipset command found. ${GR}OK.${NC}"
+	! which ipset > /dev/null && printf "\nipset command ${RED}not found${NC}.\n" && exit 6 || printf "ipset command found. ${GR}OK.${NC}"
 }
 
 
 IPTABLECOMMANDCHECK()
 {
 	# Check the iptables command
-	! which iptables > /dev/null && echo -e "iptables command ${RED}not found${NC}.\n" && exit 7 || echo -e "iptables command found. ${GR}OK.${NC}"
+	! which iptables > /dev/null && printf "iptables command ${RED}not found${NC}.\n" && exit 7 || printf "iptables command found. ${GR}OK.${NC}"
 }
 
 
 SETCRONTAB()
 {
-	[ ! -f "$CRONLOCATION" ] || [ $(grep -c "reboot root sleep" "$CRONLOCATION") -lt 1 ] && echo -e "# $SCRIPTNAME installed at $(date)\n@reboot root sleep 30 && $SCRIPTLOCATION --cron" > "$CRONLOCATION" && echo -e "Crontab entry has been set. ${GR}OK.${NC}" || echo -e "Crontab entry ${GR}already set.${NC}"
+	[ ! -f "$CRONLOCATION" ] || [ $(grep -c "reboot root sleep" "$CRONLOCATION") -lt 1 ] && printf "# $SCRIPTNAME installed at $(date)\n@reboot root sleep 30 && $SCRIPTLOCATION --cron" > "$CRONLOCATION" && printf "Crontab entry has been set. ${GR}OK.${NC}" || printf "Crontab entry ${GR}already set.${NC}"
 }
 
 
 WHITELIST()
 {
-	[ ! -f "$WHITELISTLOCATION" ] && echo -e "# This file is part of $SCRIPTNAME\n# Add one IP per line to this file. These IP addresses will be never blocked. Note: Only IPv4 addresses are supported.\n# More info on GitHub: https://github.com/Feriman22/portscan-protection\n# If you found it useful, please donate via PayPal: https://paypal.me/BajzaFerenc\n# Thank you!\n\n127.0.0.1" > $WHITELISTLOCATION
+	[ ! -f "$WHITELISTLOCATION" ] && printf "# This file is part of $SCRIPTNAME\n# Add one IP per line to this file. These IP addresses will be never blocked. Note: Only IPv4 addresses are supported.\n# More info on GitHub: https://github.com/Feriman22/portscan-protection\n# If you found it useful, please donate via PayPal: https://paypal.me/BajzaFerenc\n# Thank you!\n\n127.0.0.1" > $WHITELISTLOCATION
 	for i in nano vi vim; do
 		if which $i > /dev/null; then
 			$i "$WHITELISTLOCATION"
 			"$SCRIPTLOCATION" --cron
-			echo -e "Whitelist IPs activated if the file changed." ; FOUND="1"
+			printf "Whitelist has been activated if the file modified." ; FOUND="1"
 			break
 		fi
 	done
@@ -54,28 +54,28 @@ UPDATE()
 
 	# Compare the installed and the GitHub stored version - Only internal, not available by any argument
 	if [[ "$1" == "ONLYCHECK" ]] && [[ "$NEW" != "$VERSION" ]]; then
-		[ "$1" != '--cron' ] && echo -e "New version ${YL}available!${NC}"
+		[ "$1" != '--cron' ] && printf "New version ${YL}available!${NC}"
 	else
-		[[ "$1" == "ONLYCHECK" ]] && [ "$1" != '--cron' ] && echo -e "$SCRIPTNAME is ${GR}up to date.${NC}"
+		[[ "$1" == "ONLYCHECK" ]] && [ "$1" != '--cron' ] && printf "$SCRIPTNAME is ${GR}up to date.${NC}"
 	fi
 
 	# Check the current installation
 	if [[ "$1" != "ONLYCHECK" ]] && [ -f "$CRONLOCATION" ] && [ -x "$SCRIPTLOCATION" ]; then
 
 		# Check the GitHub - Is it available? - Exit if not
-		[ "$1" != '--cron' ] && [[ ! "$NEW" ]] && echo -e "GitHub is ${RED}not available now.${NC} Try again later." && exit 8
+		[ "$1" != '--cron' ] && [[ ! "$NEW" ]] && printf "GitHub is ${RED}not available now.${NC} Try again later." && exit 8
 		[ "$1" == '--cron' ] && [[ ! "$NEW" ]] && exit 8
 
 		# Compare the installed and the GitHub stored version
 		if [[ "$NEW" != "$VERSION" ]]; then
 			curl -s -o "$SCRIPTLOCATION" "$GITHUBRAW"
 			SETCRONTAB
-			[ "$1" != '--cron' ] && echo -e "Script has been ${GR}updated.${NC}"
+			[ "$1" != '--cron' ] && printf "Script has been ${GR}updated.${NC}"
 		else
-			[ "$1" != '--cron' ] && echo -e "$SCRIPTNAME is ${GR}up to date.${NC}"
+			[ "$1" != '--cron' ] && printf "$SCRIPTNAME is ${GR}up to date.${NC}"
 		fi
 	else
-		[[ "$1" != "ONLYCHECK" ]] && [ "$1" != '--cron' ] && echo -e "Script ${RED}not installed.${NC} Install first then you can update it."
+		[[ "$1" != "ONLYCHECK" ]] && [ "$1" != '--cron' ] && printf "Script ${RED}not installed.${NC} Install first then you can update it."
 	fi
 }
 
@@ -87,20 +87,20 @@ if [ "$1" != '--cron' ]; then
 	YL='\033[0;33m' # Yellow Color
 	NC='\033[0m' # No Color
 
-	echo -e "\n$SCRIPTNAME\n"
+	printf "\n$SCRIPTNAME\n"
 	echo "Author: Feriman"
 	echo "URL: https://github.com/Feriman22/portscan-protection"
 	echo "Open GitHub page to read the manual and check new releases"
 	echo "Current version: $VERSION"
 	UPDATE ONLYCHECK # Check new version
-	echo -e "${GR}If you found it useful${NC}, please donate via PayPal: https://paypal.me/BajzaFerenc\n"
+	printf "${GR}If you found it useful${NC}, please donate via PayPal: https://paypal.me/BajzaFerenc\n"
 fi
 
 # Check the root permission
-[ ! $(id -u) = 0 ] && echo -e "${RED}Run as root!${NC}\n" && exit 5
+[ ! $(id -u) = 0 ] && printf "${RED}Run as root!${NC}\n" && exit 5
 
 # Check curl, ipset, iptables commands
-for i in curl ipset iptables; do ! which ipset > /dev/null && echo "$i command ${RED}not found${NC}" && NOT_FOUND=1; done
+for i in curl ipset iptables; do ! which ipset > /dev/null && echo "$i command ${RED}not found${NC}" && NOT_FOUND="1"; done
 [ "$NOT_FOUND" == "1" ] && exit 10
 
 # Define ipset and iptable rules - Used at magic and uninstall part
@@ -113,15 +113,12 @@ IPTABLE4='INPUT -m state --state NEW -j SET --add-set scanned_ports src,dst'
 
 # Enter in this section only if run by cron - It will do the magic
 if [ "$1" == '--cron' ]; then
-	# Flush all existing rules first
-	iptables -F
-	iptables -X
 
 	# Add Whitelist IPs if any
 	if [ -f $WHITELISTLOCATION ]; then
 		while read WHILELISTIP; do
 			# Validate IP address
-			if [[ "$WHILELISTIP" =~ ^(([1-9]?[0-9]|1[0-9][0-9]|2([0-4][0-9]|5[0-5]))\.){3}([1-9]?[0-9]|1[0-9][0-9]|2([0-4][0-9]|5[0-5]))$ ]]; then
+			if [[ "$WHILELISTIP" =~ ^(([1-9]?[0-9]|1[0-9][0-9]|2([0-4][0-9]|5[0-5]))\.){3}([1-9]?[0-9]|1[0-9][0-9]|2([0-4][0-9]|5[0-5]))$ ]] && [ $(iptables -S | grep -cF -- "-A INPUT -s $WHILELISTIP/32 -j ACCEPT") -lt 1 ]; then
 				iptables -I INPUT -s $WHILELISTIP -j ACCEPT
 			fi
 		done < <(grep -v "^#\|^$" $WHITELISTLOCATION)
@@ -175,7 +172,7 @@ else
 fi
 
 ##
-########### Choosed the Install ###########
+########### Menu: Install ###########
 ##
 
 if [ "$OPT" == '-i' ] || [ "$OPTL" == '--install' ]; then
@@ -191,39 +188,39 @@ if [ "$OPT" == '-i' ] || [ "$OPTL" == '--install' ]; then
 
 	IPTABLECOMMANDCHECK
 
-	# Set crontab rule if doesn't exists yet
+	# Set crontab rule if it does not already exist
 	SETCRONTAB
 
 	# Copy the script to $SCRIPTLOCATION and add execute permission
 	INSTALLERLOCATION=$(realpath $0)
 	if [ "$INSTALLERLOCATION" != "$SCRIPTLOCATION" ]; then
-		curl -s -o "$SCRIPTLOCATION" "$GITHUBRAW" && chmod +x "$SCRIPTLOCATION" && echo -e "$SCRIPTNAME has been copied in $SCRIPTLOCATION ${GR}OK.${NC}"
+		curl -s -o "$SCRIPTLOCATION" "$GITHUBRAW" && chmod +x "$SCRIPTLOCATION" && printf "$SCRIPTNAME has been copied in $SCRIPTLOCATION ${GR}OK.${NC}"
 	else
-		echo -e "$SCRIPTNAME already copied to destination. Nothing to do. ${GR}OK.${NC}"
+		printf "$SCRIPTNAME already copied to destination. Nothing to do. ${GR}OK.${NC}"
 	fi
 
-	# First cron like run to activate the iptable rules
-	"$SCRIPTLOCATION" --cron && echo -e "iptable rules have been activated. You are protected! ${GR}OK.${NC}\n"
+	# First "cron like" run to activate the iptable rules
+	"$SCRIPTLOCATION" --cron && printf "iptable rules have been activated. You are protected! ${GR}OK.${NC}\n"
 
 	# Finish
-	echo -e "\n${GR}Note:${NC} If you want to Edit Whitelist or Verify the install, just run the below command:\nsudo $SCRIPTLOCATION\n"
-	echo -e "${GR}Done.${NC} The install was $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec. That was so quick, wasn't?"
+	printf "\n${GR}Note:${NC} If you want to Edit Whitelist, or Verify the install, just run the below command:\nsudo $SCRIPTLOCATION\n"
+	printf "${GR}Done.${NC} The install was $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec. That was so quick, wasn't?"
 fi
 
 
 ##
-########### Choosed the Uninstall ###########
+########### Menu: Uninstall ###########
 ##
 
 if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 	if [ "$ARG" != 'YES' ]; then
 		loop=true;
 		while $loop; do
-			echo -e "${RED}UNINSTALL${NC} $SCRIPTNAME on $(hostname).\n"
+			printf "${RED}UNINSTALL${NC} $SCRIPTNAME on $(hostname).\n"
 			read -p "Are you sure? [Y/n]: " var1
 			loop=false;
 			if [ "$var1" == 'Y' ] || [ "$var1" == 'y' ]; then
-				echo -e "Okay! You have 5 sec until start the ${RED}UNINSTALL${NC} process on $(hostname). Press Ctrl + C to exit.\n"
+				printf "Okay! You have 5 sec until starting the ${RED}UNINSTALL${NC} process on $(hostname). Press Ctrl + C to exit.\n"
 				for i in {5..1}; do echo $i && sleep 1; done
 			elif [ "$var1" == 'N' ] || [ "$var1" == 'n' ]; then
 				echo "Okay, exit."
@@ -242,23 +239,23 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 	# Remove crontab file
 	if [ -f "$CRONLOCATION" ]; then
 		rm -r "$CRONLOCATION"
-		echo -e "\nCrontab file removed. ${GR}OK.${NC}"
+		printf "\nCrontab file has been removed. ${GR}OK.${NC}"
 	else
-		echo -e "\nCrontab file not found. ${GR}OK.${NC}"
+		printf "\nCrontab file not found. ${GR}OK.${NC}"
 	fi
 
 	# Remove the script
-	[ -f "$SCRIPTLOCATION" ] && rm -f "$SCRIPTLOCATION" && echo -e "$SCRIPTNAME removed. ${GR}OK.${NC}" || echo -e "Script not found. ${GR}OK.${NC}"
+	[ -f "$SCRIPTLOCATION" ] && rm -f "$SCRIPTLOCATION" && printf "$SCRIPTNAME has been removed. ${GR}OK.${NC}" || printf "Script not found. ${GR}OK.${NC}"
 
 	# Remove iptable rules
 	N=1
 	for IPTABLERULE in "$IPTABLE1" "$IPTABLE2" "$IPTABLE3" "$IPTABLE4"; do
 		if [ $(iptables -S | grep -cF -- "-A $IPTABLERULE") -gt 0 ]; then
 			iptables -D $IPTABLERULE
-			echo -e "#$N iptable rule has been removed. ${GR}OK.${NC}"
+			printf "#$N iptable rule has been removed. ${GR}OK.${NC}"
 			(( N = N + 1 ))
 		else
-			echo -e "#$N iptable rule not found. ${GR}OK.${NC}"
+			printf "#$N iptable rule not found. ${GR}OK.${NC}"
 			(( N = N + 1 ))
 		fi
 	done
@@ -271,58 +268,58 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 				iptables -D INPUT -s $WHILELISTIP -j ACCEPT
 			fi
 		done < <(grep -v "^#\|^$" $WHITELISTLOCATION)
-		echo -e "Whitelist IPs removed from iptables if any. ${GR}OK.${NC}"
+		printf "Whitelist removed from iptables if any. ${GR}OK.${NC}"
 	fi
 
 	# Remove Whitelist
-	[ -f "$WHITELISTLOCATION" ] && rm -f "$WHITELISTLOCATION" && echo -e "Whitelist removed. ${GR}OK.${NC}" || echo -e "Whitelist not found. ${GR}OK.${NC}"
+	[ -f "$WHITELISTLOCATION" ] && rm -f "$WHITELISTLOCATION" && printf "Whitelist has been removed. ${GR}OK.${NC}" || printf "Whitelist not found. ${GR}OK.${NC}"
 
 	# Remove ipset rules
 	for IPSETRULE in scanned_ports port_scanners; do
 		if [ $(ipset list | grep -c "$IPSETRULE") -gt 0 ]; then
 			sleep 1
 			ipset destroy $IPSETRULE
-			echo -e "$IPSETRULE ipset rule has been removed. ${GR}OK.${NC}"
+			printf "$IPSETRULE ipset rule has been removed. ${GR}OK.${NC}"
 		else
-			echo -e "$IPSETRULE ipset rule not found. ${GR}OK.${NC}"
+			printf "$IPSETRULE ipset rule not found. ${GR}OK.${NC}"
 		fi
 	done
 
-	echo -e "\nIf the $SCRIPTNAME removed accidently, run this below command to install it again:\n"
-	echo -e "curl -s $GITHUBRAW | sudo bash /dev/stdin -i\n"
+	printf "\nIf the $SCRIPTNAME removed accidently, run this below command to install it again:\n"
+	printf "curl -s $GITHUBRAW | sudo bash /dev/stdin -i\n"
 fi
 
 ##
-########### Choosed the Verify ###########
+########### Menu: Verify ###########
 ##
 
 if [ "$OPT" == '-v' ] || [ "$OPTL" == '--verify' ]; then
 
 	# Crontab verify
-	[ ! -f "$CRONLOCATION" ] && echo -e "\nCrontab entry ${RED}not found.${NC}" || echo -e "\nCrontab entry found. ${GR}OK.${NC}"
+	[ ! -f "$CRONLOCATION" ] && printf "\nCrontab entry ${RED}not found.${NC}" || printf "\nCrontab entry found. ${GR}OK.${NC}"
 
 	# Verify script location
 	if [ -f "$SCRIPTLOCATION" ]; then
-		echo -e "Script found. ${GR}OK.${NC}"
+		printf "Script found. ${GR}OK.${NC}"
 
 		# Verify execute permission
-		[ -x "$SCRIPTLOCATION" ] && echo -e "Script is executable. ${GR}OK.${NC}" || echo -e "Execute permission is ${RED}missing.${NC} Fix it by run: chmod +x $SCRIPTLOCATION"
+		[ -x "$SCRIPTLOCATION" ] && printf "The script is executable. ${GR}OK.${NC}" || printf "The execute permission is ${RED}missing.${NC} Fix it by run: chmod +x $SCRIPTLOCATION"
 
 	else
-		echo -e "Script ${RED}not found.${NC}"
+		printf "Script ${RED}not found.${NC}"
 	fi
 
 	IPSETCOMMANDCHECK
 
 	IPTABLECOMMANDCHECK
 
-	[ $(iptables -S | grep -c port_scanners) -gt 0 ] && [ $(iptables -S | grep -c scanned_ports) -gt 0 ] && echo -e "iptables rules have been configured. You are protected! ${GR}OK.${NC}" || echo -e "iptables rules are ${RED}not configured!${NC}"
+	[ $(iptables -S | grep -c port_scanners) -gt 0 ] && [ $(iptables -S | grep -c scanned_ports) -gt 0 ] && printf "iptables rules have been configured. You are protected! ${GR}OK.${NC}" || printf "iptables rules are ${RED}not configured!${NC}"
 
 	if [ -f $WHITELISTLOCATION ]; then
 		while read WHILELISTIP; do
 			# Validate IP address
 			if [[ ! "$WHILELISTIP" =~ ^(([1-9]?[0-9]|1[0-9][0-9]|2([0-4][0-9]|5[0-5]))\.){3}([1-9]?[0-9]|1[0-9][0-9]|2([0-4][0-9]|5[0-5]))$ ]]; then
-				echo -e "$WHILELISTIP is ${RED}not valid${NC} IPv4 address in the Whitelist and it will be ignored. May you have to fix it by choose Edit Whitelist from the menu."
+				printf "$WHILELISTIP is ${RED}not valid${NC} IPv4 address in the Whitelist and it will be ignored. May you have to fix it by choose Edit Whitelist from the menu."
 			fi
 		done < <(grep -v "^#\|^$" $WHITELISTLOCATION)
 	fi
@@ -330,7 +327,7 @@ fi
 
 
 ##
-########### Choosed the Update ###########
+########### Menu: Update ###########
 ##
 
 [ "$OPT" == '-up' ] || [ "$OPTL" == '--update' ] && UPDATE
