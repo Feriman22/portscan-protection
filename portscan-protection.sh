@@ -70,9 +70,9 @@ UPDATE()
 		if [[ "$NEW" != "$VERSION" ]]; then
 			curl -s -o "$SCRIPTLOCATION" "$GITHUBRAW"
 			SETCRONTAB
-			[ "$1" != '--cron' ] && printf "Script has been ${GR}updated.${NC}"
+			[ "$1" != '--cron' ] && printf "Script has been ${GR}updated.${NC}\n"
 		else
-			[ "$1" != '--cron' ] && printf "$SCRIPTNAME is ${GR}up to date.${NC}"
+			[ "$1" != '--cron' ] && printf "$SCRIPTNAME is ${GR}up to date.${NC}\n"
 		fi
 	else
 		[[ "$1" != "ONLYCHECK" ]] && [ "$1" != '--cron' ] && printf "Script ${RED}not installed.${NC} Install first then you can update it."
