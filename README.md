@@ -57,7 +57,7 @@ If you want to use this script somewhere else (e.g. in an OS installer script), 
   Run the script like the crontab does. It will only set ipset/iptable rules and auto-update the script if not disabled. No output.
 
 
-I added some exit codes in 28-04-2020 release. These codes documented here:
+Exit codes:
 
 | Exit code  | What does it mean? |
 | ------------- | ------------- |
@@ -73,7 +73,7 @@ I added some exit codes in 28-04-2020 release. These codes documented here:
 ## How to update
 
 The script will automatically update itself after reboot. *If you want to disable it, modify the 7th line in the script.*  
-However to manually update, run the script and choose "Update the script" or run with --update argument like this:    
+However you can update it manually by running the script and choose "Update the script" or run with --update argument like this:    
 `/usr/local/sbin/portscan-protection.sh --update`
 
 ## Roadmap
