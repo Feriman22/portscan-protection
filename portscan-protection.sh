@@ -15,20 +15,20 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 IPSETCOMMANDCHECK()
 {
 	# Check the ipset command
-	! which ipset > /dev/null && printf "\nipset command ${RED}not found${NC}.\n" && exit 6 || printf "ipset command found. ${GR}OK.${NC}"
+	! which ipset > /dev/null && printf "\nipset command ${RED}not found${NC}.\n" && exit 6 || printf "ipset command found. ${GR}OK.${NC}\n"
 }
 
 
 IPTABLECOMMANDCHECK()
 {
 	# Check the iptables command
-	! which iptables > /dev/null && printf "iptables command ${RED}not found${NC}.\n" && exit 7 || printf "iptables command found. ${GR}OK.${NC}"
+	! which iptables > /dev/null && printf "iptables command ${RED}not found${NC}.\n" && exit 7 || printf "iptables command found. ${GR}OK.${NC}\n"
 }
 
 
 SETCRONTAB()
 {
-	[ ! -f "$CRONLOCATION" ] || [ $(grep -c "reboot root sleep" "$CRONLOCATION") -lt 1 ] && printf "# $SCRIPTNAME installed at $(date)\n@reboot root sleep 30 && $SCRIPTLOCATION --cron" > "$CRONLOCATION" && printf "Crontab entry has been set. ${GR}OK.${NC}" || printf "Crontab entry ${GR}already set.${NC}"
+	[ ! -f "$CRONLOCATION" ] || [ $(grep -c "reboot root sleep" "$CRONLOCATION") -lt 1 ] && printf "# $SCRIPTNAME installed at $(date)\n@reboot root sleep 30 && $SCRIPTLOCATION --cron" > "$CRONLOCATION" && printf "Crontab entry has been set. ${GR}OK.${NC}\n" || printf "Crontab entry ${GR}already set.${NC}\n"
 }
 
 
@@ -39,7 +39,7 @@ WHITELIST()
 		if which $i > /dev/null; then
 			$i "$WHITELISTLOCATION"
 			"$SCRIPTLOCATION" --cron
-			printf "Whitelist has been activated if the file modified." ; FOUND="1"
+			printf "Whitelist has been activated if the file modified.\n" ; FOUND="1"
 			break
 		fi
 	done
@@ -194,17 +194,17 @@ if [ "$OPT" == '-i' ] || [ "$OPTL" == '--install' ]; then
 	# Copy the script to $SCRIPTLOCATION and add execute permission
 	INSTALLERLOCATION=$(realpath $0)
 	if [ "$INSTALLERLOCATION" != "$SCRIPTLOCATION" ]; then
-		curl -s -o "$SCRIPTLOCATION" "$GITHUBRAW" && chmod +x "$SCRIPTLOCATION" && printf "$SCRIPTNAME has been copied in $SCRIPTLOCATION ${GR}OK.${NC}"
+		curl -s -o "$SCRIPTLOCATION" "$GITHUBRAW" && chmod +x "$SCRIPTLOCATION" && printf "$SCRIPTNAME has been copied in $SCRIPTLOCATION ${GR}OK.${NC}\n"
 	else
-		printf "$SCRIPTNAME already copied to destination. Nothing to do. ${GR}OK.${NC}"
+		printf "$SCRIPTNAME already copied to destination. Nothing to do. ${GR}OK.${NC}\n"
 	fi
 
 	# First "cron like" run to activate the iptable rules
 	"$SCRIPTLOCATION" --cron && printf "iptable rules have been activated. You are protected! ${GR}OK.${NC}\n"
 
 	# Finish
-	printf "\n${GR}Note:${NC} If you want to Edit Whitelist, or Verify the install, just run the below command:\nsudo $SCRIPTLOCATION\n"
-	printf "${GR}Done.${NC} The install was $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec. That was so quick, wasn't?"
+	printf "\n${GR}Note:${NC} If you want to Edit Whitelist, or Verify the install, just run the below command:\nsudo $SCRIPTLOCATION\n\n"
+	printf "${GR}Done.${NC} The install was $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec. That was so quick, wasn't?\n"
 fi
 
 
