@@ -34,7 +34,7 @@ SETCRONTAB()
 
 WHITELIST()
 {
-	[ ! -f "$WHITELISTLOCATION" ] && printf "# This file is part of $SCRIPTNAME\n# Add one IP per line to this file. These IP addresses will be never blocked. Note: Only IPv4 addresses are supported.\n# More info on GitHub: https://github.com/Feriman22/portscan-protection\n# If you found it useful, please donate via PayPal: https://paypal.me/BajzaFerenc\n# Thank you!\n\n127.0.0.1" > $WHITELISTLOCATION
+	[ ! -f "$WHITELISTLOCATION" ] && printf "# This file is part of $SCRIPTNAME\n# Add one IP per line to this file. These IP addresses will be never blocked. Note: Only IPv4 addresses are supported.\n# More info on GitHub: https://github.com/Feriman22/portscan-protection\n# If you found it useful, please donate via PayPal: https://paypal.me/BajzaFerenc\n\n# Thank you!\n\n127.0.0.1" > $WHITELISTLOCATION
 	for i in nano vi vim; do
 		if which $i > /dev/null; then
 			$i "$WHITELISTLOCATION"
@@ -54,16 +54,16 @@ UPDATE()
 
 	# Compare the installed and the GitHub stored version - Only internal, not available by any argument
 	if [[ "$1" == "ONLYCHECK" ]] && [[ "$NEW" != "$VERSION" ]]; then
-		[ "$1" != '--cron' ] && printf "New version ${YL}available!${NC}"
+		[ "$1" != '--cron' ] && printf "New version ${YL}available!${NC}\n"
 	else
-		[[ "$1" == "ONLYCHECK" ]] && [ "$1" != '--cron' ] && printf "$SCRIPTNAME is ${GR}up to date.${NC}"
+		[[ "$1" == "ONLYCHECK" ]] && [ "$1" != '--cron' ] && printf "$SCRIPTNAME is ${GR}up to date.${NC}\n\n"
 	fi
 
 	# Check the current installation
 	if [[ "$1" != "ONLYCHECK" ]] && [ -f "$CRONLOCATION" ] && [ -x "$SCRIPTLOCATION" ]; then
 
 		# Check the GitHub - Is it available? - Exit if not
-		[ "$1" != '--cron' ] && [[ ! "$NEW" ]] && printf "GitHub is ${RED}not available now.${NC} Try again later." && exit 8
+		[ "$1" != '--cron' ] && [[ ! "$NEW" ]] && printf "GitHub is ${RED}not available now.${NC} Try again later.\n" && exit 8
 		[ "$1" == '--cron' ] && [[ ! "$NEW" ]] && exit 8
 
 		# Compare the installed and the GitHub stored version
@@ -72,10 +72,10 @@ UPDATE()
 			SETCRONTAB
 			[ "$1" != '--cron' ] && printf "Script has been ${GR}updated.${NC}\n"
 		else
-			[ "$1" != '--cron' ] && printf "$SCRIPTNAME is ${GR}up to date.${NC}\n"
+			[ "$1" != '--cron' ] && printf "$SCRIPTNAME is ${GR}up to date.${NC}\n\n"
 		fi
 	else
-		[[ "$1" != "ONLYCHECK" ]] && [ "$1" != '--cron' ] && printf "Script ${RED}not installed.${NC} Install first then you can update it."
+		[[ "$1" != "ONLYCHECK" ]] && [ "$1" != '--cron' ] && printf "Script ${RED}not installed.${NC} Install first then you can update it.\n"
 	fi
 }
 
@@ -93,7 +93,7 @@ if [ "$1" != '--cron' ]; then
 	echo "Open GitHub page to read the manual and check new releases"
 	echo "Current version: $VERSION"
 	UPDATE ONLYCHECK # Check new version
-	printf "${GR}If you found it useful${NC}, please donate via PayPal: https://paypal.me/BajzaFerenc\n"
+	printf "${GR}If you found it useful${NC}, please donate via PayPal: https://paypal.me/BajzaFerenc\n\n"
 fi
 
 # Check the root permission
