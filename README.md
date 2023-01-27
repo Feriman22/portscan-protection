@@ -139,5 +139,6 @@ However you can update it manually by running the script and choose "Update the 
 
 ## Do not forget
 
-If you found it useful, **please donate me via PayPal** and I can improve & fix bugs or develop another awesome scripts! (:
-[paypal.me/BajzaFerenc](https://www.paypal.me/BajzaFerenc)
+If you found my work helpful, I would greatly appreciate it if you could make a **[donation through PayPal](https://www.paypal.me/BajzaFerenc)** to support my efforts in improving and fixing bugs or creating more awesome scripts. Thank you!
+
+<a href='https://paypal.me/BajzaFerenc'><img height='36' style='border:0px;height:36px;' src='https://raw.githubusercontent.com/Feriman22/portscan-protection/master/paypal-donate.png' border='0' alt='Donate with Paypal' />  
