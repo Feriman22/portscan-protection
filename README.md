@@ -1,7 +1,7 @@
 # Portscan Protection (Linux)
 
 ## Description
-Hackers and kiddie scripts always scan servers and look for open ports. If they find one (for example your SSH port), they will try to crack it. This script helps you to avoid becoming a victim of portscan attack on Linux systems with built-in firewall protection (iptables). If they try to knock on ports too quickly, the script will automagically block the attacker's IP address in the iptable.
+Hackers and unskilled script-users often scan servers for open ports. If they find one, such as your SSH port, they will attempt to crack it. This script helps protect Linux systems with built-in firewall protection (iptables) from portscan attacks by automatically blocking the IP address of any attacker who attempts to access ports too quickly.
 
 *The menu after install*  
 ![Screenshot](https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection-installed-screenshot.png)
