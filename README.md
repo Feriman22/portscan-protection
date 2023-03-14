@@ -86,6 +86,9 @@ However you can update it manually by running the script and choose "Update the 
 
 ## Changelog
 
+>14-03-2023
+- Fix bug [#9](https://github.com/Feriman22/portscan-protection/issues/9)
+
 >16-08-2022
 - Bugfix: iptables flush has been removed
 - Using _printf_ instead of _echo -e_
