@@ -1,6 +1,6 @@
 #!/bin/bash
 SCRIPTNAME="Portscan Protection"
-VERSION="16-08-2022"
+VERSION="14-03-2023"
 SCRIPTLOCATION="/usr/local/sbin/portscan-protection.sh"
 WHITELISTLOCATION="/usr/local/sbin/portscan-protection-white.list"
 CRONLOCATION="/etc/cron.d/portscan-protection"
