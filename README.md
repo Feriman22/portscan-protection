@@ -90,6 +90,7 @@ However you can update it manually by running the script and choose "Update the 
 >26-06-2023
 - Use *command -v* instead of *which*
 - Code simplification
+- Small bugfixes
 
 >14-03-2023
 - Fix bug [#9](https://github.com/Feriman22/portscan-protection/issues/9)
