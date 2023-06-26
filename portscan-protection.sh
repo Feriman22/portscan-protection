@@ -56,7 +56,7 @@ UPDATE()
 	if [[ "$1" == "ONLYCHECK" ]] && [[ "$NEW" != "$VERSION" ]]; then
 		[ "$1" != '--cron' ] && printf "New version ${YL}available!${NC}\n"
 	else
-		[[ "$1" == "ONLYCHECK" ]] && [ "$1" != '--cron' ] && printf "$SCRIPTNAME is ${GR}up to date.${NC}\n\n"
+		[[ "$1" == "ONLYCHECK" ]] && [ "$1" != '--cron' ] && printf "The downloaded $SCRIPTNAME is ${GR}up to date.${NC}\n\n"
 	fi
 
 	# Check the current installation
@@ -74,7 +74,7 @@ UPDATE()
 			SETCRONTAB
 			[ "$1" != '--cron' ] && printf "Script has been ${GR}updated.${NC}\n"
 		else
-			[ "$1" != '--cron' ] && printf "$SCRIPTNAME is ${GR}up to date.${NC}\n\n"
+			[ "$1" != '--cron' ] && printf "The installed $SCRIPTNAME is ${GR}up to date.${NC}\n\n"
 		fi
 	else
 		[[ "$1" != "ONLYCHECK" ]] && [ "$1" != '--cron' ] && printf "Script ${RED}not installed.${NC} Install first then you can update it.\n"
