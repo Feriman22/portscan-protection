@@ -1,6 +1,6 @@
 #!/bin/bash
 SCRIPTNAME="Portscan Protection"
-VERSION="14-03-2023"
+VERSION="26-06-2023"
 SCRIPTLOCATION="/usr/local/sbin/portscan-protection.sh"
 WHITELISTLOCATION="/usr/local/sbin/portscan-protection-white.list"
 CRONLOCATION="/etc/cron.d/portscan-protection"
@@ -15,20 +15,20 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 IPSETCOMMANDCHECK()
 {
 	# Check the ipset command
-	! which ipset > /dev/null && printf "\nipset command ${RED}not found${NC}.\n" && exit 6 || printf "ipset command found. ${GR}OK.${NC}\n"
+	! command -v ipset > /dev/null && printf "\nipset command ${RED}not found${NC}.\n" && exit 6 || printf "ipset command found. ${GR}OK.${NC}\n"
 }
 
 
 IPTABLECOMMANDCHECK()
 {
 	# Check the iptables command
-	! which iptables > /dev/null && printf "iptables command ${RED}not found${NC}.\n" && exit 7 || printf "iptables command found. ${GR}OK.${NC}\n"
+	! command -v iptables > /dev/null && printf "iptables command ${RED}not found${NC}.\n" && exit 7 || printf "iptables command found. ${GR}OK.${NC}\n"
 }
 
 
 SETCRONTAB()
 {
-	[ ! -f "$CRONLOCATION" ] || [ $(grep -c "reboot root sleep" "$CRONLOCATION") -lt 1 ] && printf "# $SCRIPTNAME installed at $(date)\n@reboot root sleep 30 && $SCRIPTLOCATION --cron\n\n" > "$CRONLOCATION" && printf "Crontab entry has been set. ${GR}OK.${NC}\n" || printf "Crontab entry ${GR}already set.${NC}\n"
+	[ ! -f "$CRONLOCATION" ] || ! grep -q "reboot root sleep" "$CRONLOCATION" && printf "# $SCRIPTNAME installed at $(date)\n@reboot root sleep 30 && $SCRIPTLOCATION --cron\n\n" > "$CRONLOCATION" && printf "Crontab entry has been set. ${GR}OK.${NC}\n" || printf "Crontab entry ${GR}already set.${NC}\n"
 }
 
 
@@ -36,14 +36,14 @@ WHITELIST()
 {
 	[ ! -f "$WHITELISTLOCATION" ] && printf "# This file is part of $SCRIPTNAME\n# Add one IP per line to this file. These IP addresses will be never blocked. Note: Only IPv4 addresses are supported.\n# More info on GitHub: https://github.com/Feriman22/portscan-protection\n# If you found it useful, please donate via PayPal: https://paypal.me/BajzaFerenc\n\n# Thank you!\n\n127.0.0.1" > $WHITELISTLOCATION
 	for i in nano vi vim; do
-		if which $i > /dev/null; then
+		if command -v $i > /dev/null; then
 			$i "$WHITELISTLOCATION"
 			"$SCRIPTLOCATION" --cron
-			printf "Whitelist has been activated if the file modified.\n" ; FOUND="1"
+			printf "Whitelist has been activated if the file has been modified.\n" ; FOUND="1"
 			break
 		fi
 	done
-	[ "$FOUND" != "1" ] && echo "nano, vi or vim not found. Edit manually the whitelist: $WHITELISTLOCATION"
+	[ "$FOUND" != "1" ] && echo "nano, vi or vim is not found. Edit manually the whitelist: $WHITELISTLOCATION"
 }
 
 
@@ -63,8 +63,10 @@ UPDATE()
 	if [[ "$1" != "ONLYCHECK" ]] && [ -f "$CRONLOCATION" ] && [ -x "$SCRIPTLOCATION" ]; then
 
 		# Check the GitHub - Is it available? - Exit if not
-		[ "$1" != '--cron' ] && [[ ! "$NEW" ]] && printf "GitHub is ${RED}not available now.${NC} Try again later.\n" && exit 8
-		[ "$1" == '--cron' ] && [[ ! "$NEW" ]] && exit 8
+  		if [[ ! "$NEW" ]]; then
+			[ "$1" != '--cron' ] && printf "GitHub is ${RED}not available now.${NC} Try again later.\n"
+   			exit 8
+   		fi
 
 		# Compare the installed and the GitHub stored version
 		if [[ "$NEW" != "$VERSION" ]]; then
@@ -97,10 +99,10 @@ if [ "$1" != '--cron' ]; then
 fi
 
 # Check the root permission
-[ ! $(id -u) = 0 ] && printf "${RED}Run as root!${NC}\n" && exit 5
+[ ! "$(id -u)" = 0 ] && printf "${RED}Run as root!${NC}\n" && exit 5
 
 # Check curl, ipset, iptables commands
-for i in curl ipset iptables; do ! which ipset > /dev/null && echo "$i command ${RED}not found${NC}" && NOT_FOUND="1"; done
+for i in curl ipset iptables; do ! command -v ipset > /dev/null && echo "$i command ${RED}not found${NC}" && NOT_FOUND="1"; done
 [ "$NOT_FOUND" == "1" ] && exit 10
 
 # Define ipset and iptable rules - Used at magic and uninstall part
@@ -124,12 +126,12 @@ if [ "$1" == '--cron' ]; then
 		done < <(grep -v "^#\|^$" $WHITELISTLOCATION)
 	fi
 
-	[ $(ipset list | grep -c port_scanners) -lt 1 ] && ipset create $IPSET1
-	[ $(ipset list | grep -c scanned_ports) -lt 1 ] && ipset create $IPSET2
-	[ $(iptables -S | grep -cF -- "-A $IPTABLE1") -lt 1 ] && iptables -A $IPTABLE1
-	[ $(iptables -S | grep -cF -- "-A $IPTABLE2") -lt 1 ] && iptables -A $IPTABLE2
-	[ $(iptables -S | grep -cF -- "-A $IPTABLE3") -lt 1 ] && iptables -A $IPTABLE3
-	[ $(iptables -S | grep -cF -- "-A $IPTABLE4") -lt 1 ] && iptables -A $IPTABLE4
+	ipset list | grep -q port_scanners || ipset create $IPSET1
+	ipset list | grep -q scanned_ports || ipset create $IPSET2
+	iptables -S | grep -qF -- "-A $IPTABLE1" || iptables -A $IPTABLE1
+	iptables -S | grep -qF -- "-A $IPTABLE2" || iptables -A $IPTABLE2
+	iptables -S | grep -qF -- "-A $IPTABLE3" || iptables -A $IPTABLE3
+	iptables -S | grep -qF -- "-A $IPTABLE4" || iptables -A $IPTABLE4
 
 	# Auto update if not disabled
 	[ "$AUTOUPDATE" == "YES" ] && UPDATE --cron
@@ -250,14 +252,13 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 	# Remove iptable rules
 	N=1
 	for IPTABLERULE in "$IPTABLE1" "$IPTABLE2" "$IPTABLE3" "$IPTABLE4"; do
-		if [ $(iptables -S | grep -cF -- "-A $IPTABLERULE") -gt 0 ]; then
+		if iptables -S | grep -qF -- "-A $IPTABLERULE"; then
 			iptables -D $IPTABLERULE
 			printf "#$N iptable rule has been removed. ${GR}OK.${NC}\n"
-			(( N = N + 1 ))
 		else
 			printf "#$N iptable rule not found. ${GR}OK.${NC}"
-			(( N = N + 1 ))
 		fi
+  		((N++))
 	done
 
 	# Remove Whitelist rules
@@ -276,7 +277,7 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 
 	# Remove ipset rules
 	for IPSETRULE in scanned_ports port_scanners; do
-		if [ $(ipset list | grep -c "$IPSETRULE") -gt 0 ]; then
+		if ipset list | grep -q "$IPSETRULE"; then
 			sleep 1
 			ipset destroy $IPSETRULE
 			printf "$IPSETRULE ipset rule has been removed. ${GR}OK.${NC}\n"
@@ -313,7 +314,7 @@ if [ "$OPT" == '-v' ] || [ "$OPTL" == '--verify' ]; then
 
 	IPTABLECOMMANDCHECK
 
-	[ $(iptables -S | grep -c port_scanners) -gt 0 ] && [ $(iptables -S | grep -c scanned_ports) -gt 0 ] && printf "iptables rules have been configured. You are protected! ${GR}OK.${NC}\n" || printf "iptables rules are ${RED}not configured!${NC}\n"
+	iptables -S | grep -q port_scanners && iptables -S | grep -q scanned_ports && printf "iptables rules have been configured. You are protected! ${GR}OK.${NC}\n" || printf "iptables rules are ${RED}not configured!${NC}\n"
 
 	if [ -f $WHITELISTLOCATION ]; then
 		while read WHILELISTIP; do
