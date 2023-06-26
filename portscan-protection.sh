@@ -297,7 +297,7 @@ fi
 if [ "$OPT" == '-v' ] || [ "$OPTL" == '--verify' ]; then
 
 	# Crontab verify
-	[ ! -f "$CRONLOCATION" ] && printf "\nCrontab entry ${RED}not found.${NC}"\n || printf "\nCrontab entry found. ${GR}OK.${NC}\n"
+	[ ! -f "$CRONLOCATION" ] && printf "\nCrontab entry ${RED}not found.${NC}\n" || printf "\nCrontab entry found. ${GR}OK.${NC}\n"
 
 	# Verify script location
 	if [ -f "$SCRIPTLOCATION" ]; then
