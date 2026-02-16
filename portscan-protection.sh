@@ -8,7 +8,7 @@ CRONLOCATION="/etc/cron.d/portscan-protection"
 SYSTEMDSERVICE="/etc/systemd/system/portscan-protection.service"
 SYSTEMDTIMER="/etc/systemd/system/portscan-protection.timer"
 GITHUBRAW="https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection.sh"
-AUTOUPDATE="YES" # Edit this variable to "NO" if you don't want to auto update this script (NOT RECOMMENDED)
+AUTOUPDATE="YES" # Set to "NO" to disable automatic updates (NOT RECOMMENDED)
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 # Default configuration values
@@ -253,7 +253,8 @@ SETSSHPORT()
 
 UPDATE()
 {
-	# Getting info about the latest GitHub version
+	# Download the latest script from GitHub and extract the VERSION string
+	# This compares the version line (e.g., VERSION="01-01-2026") with the current version
 	NEW=$(curl -s "$GITHUBRAW" | awk -F'"' '/^VERSION/ {print $2}')
 
 	# Compare the installed and the GitHub stored version - Only internal, not available by any argument
@@ -540,6 +541,7 @@ if [ "$OPT" == '-i' ] || [ "$OPTL" == '--install' ]; then
 	# Copy the script to $SCRIPTLOCATION and add execute permission
 	INSTALLERLOCATION=$(realpath $0)
 	if [ "$INSTALLERLOCATION" != "$SCRIPTLOCATION" ]; then
+		# Download latest version from GitHub and make it executable
 		curl -s -o "$SCRIPTLOCATION" "$GITHUBRAW" && chmod +x "$SCRIPTLOCATION" && printf "$SCRIPTNAME has been copied in $SCRIPTLOCATION ${GR}OK.${NC}\n"
 	else
 		printf "$SCRIPTNAME already copied to destination. Nothing to do. ${GR}OK.${NC}\n"
