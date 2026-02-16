@@ -181,6 +181,9 @@ This version is fully backward compatible with previous installations:
 
 ## Changelog
 
+>16-02-2026
+- Improve code comments
+
 >01-01-2026
 - **NEW:** Systemd support (auto-detected, with fallback to cron)
 - **NEW:** nftables support (auto-detected)
