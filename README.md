@@ -14,6 +14,7 @@ Hackers and unskilled script-users often scan servers for open ports. If they fi
 - **Systemd & Cron support** - Uses systemd if available, falls back to cron
 - **Custom SSH port support** - Protects your custom SSH port from being blocked
 - **Whitelist support** - Never block specific IP addresses
+- **Blacklist support** - Always block specific IP addresses (e.g. known attacker IPs), auto-reapplies when the list changes
 - **Auto-update** - Automatically updates itself (can be easily toggled on/off)
 - **Easy reinstall** - Reinstall with a single command
 
@@ -42,23 +43,26 @@ If you run it without argument, you have several options:
 **After installation:**
 1. Verify
 2. Edit Whitelist
-3. Set SSH Port
-4. Toggle Auto-Update
-5. Update from GitHub
-6. Reinstall
-7. Uninstall
-8. Quit
+3. Edit Blacklist
+4. Set SSH Port
+5. Toggle Auto-Update
+6. Update from GitHub
+7. Reinstall
+8. Uninstall
+9. Quit
 
 ### Menu Options Explained
 
 The `Install` process copies the script to the */usr/local/sbin* folder and then creates either a systemd service (if systemd is available) or a cron rule in the file called *portscan-protection* in the */etc/cron.d* folder. It is executed once by itself to enable the firewall rules, and every startup, so your server is protected at all times.
 
-The `Uninstall` process removes the script from the */usr/local/sbin* folder, removes the systemd service or crontab entry, removes the configuration file, and deletes all firewall rules.
+The `Uninstall` process removes the script from the */usr/local/sbin* folder, removes the systemd service or crontab entry, removes the configuration file, removes the whitelist and blacklist files, and deletes all firewall rules.
 **WARNING!** After this step, you can no longer run the script from the */usr/local/sbin* folder!
 
-The `Reinstall` process performs a complete uninstall followed by a fresh install. Useful for fixing issues or resetting configuration.
+The `Reinstall` process performs a complete uninstall followed by a fresh install. Useful for fixing issues or resetting configuration. **Note:** since it runs a full uninstall first, it also removes your whitelist, blacklist, and SSH port setting - back them up first if you want to keep them. To pick up a new systemd timer interval without losing your configuration, edit `/etc/systemd/system/portscan-protection.timer` directly instead, then run `sudo systemctl daemon-reload`.
 
 The `Edit Whitelist` option allows adding IPv4 addresses to the whitelist. Add one IP per line to this file. These IP addresses will never be blocked. Note: Only IPv4 addresses are supported.
+
+The `Edit Blacklist` option allows adding IPv4 addresses to the blacklist. Add one IP per line to this file. These IP addresses will always be blocked (e.g. known botnet/attacker IPs). The rules are automatically re-applied whenever the file changes - immediately if edited through this menu option, or within the auto-update check cycle if edited directly. Duplicate entries and invalid lines are ignored automatically. Note: Only IPv4 addresses are supported. If the whitelist and blacklist ever contain the same IP, the whitelist always takes priority.
 
 The `Set SSH Port` option allows you to specify a custom SSH port. This ensures your SSH port won't be blocked even if you're using a non-standard port.
 
@@ -72,6 +76,7 @@ The `Verify` process checks:
 - Required commands (ipset/iptables or nft)
 - Active firewall rules
 - Whitelist validity
+- Blacklist validity
 
 The `Update from GitHub` process updates the installed script. You cannot update it before the installation!
 
@@ -176,8 +181,15 @@ This version is fully backward compatible with previous installations:
 - Cron-based installations continue to work
 - Systemd is only used for new installations or after reinstall
 - Configuration file is created automatically on first run
+- The new blacklist feature is fully optional and has no effect on existing installations until you use the `Edit Blacklist` menu option
 
 ## Changelog
+
+>05-08-2026
+- **NEW:** Blacklist support - permanently block known malicious IPs, one per line, with automatic re-apply whenever the file changes (via the `Edit Blacklist` menu option, or the auto-update check cycle for out-of-band edits)
+- Blacklist entries are validated, de-duplicated, and invalid/unreadable input is safely ignored
+- `Verify` now also reports blacklist validity
+- Clarified that `Reinstall` wipes the whitelist, blacklist, and SSH port setting
 
 >16-02-2026
 - Improve code comments
