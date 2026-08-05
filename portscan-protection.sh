@@ -1,8 +1,10 @@
 #!/bin/bash
 SCRIPTNAME="Portscan Protection"
-VERSION="16-02-2026"
+VERSION="05-08-2026"
 SCRIPTLOCATION="/usr/local/sbin/portscan-protection.sh"
 WHITELISTLOCATION="/usr/local/sbin/portscan-protection-white.list"
+BLACKLISTLOCATION="/usr/local/sbin/portscan-protection-black.list"
+BLACKLISTAPPLIEDLOCATION="/usr/local/sbin/portscan-protection-black.applied"
 CONFIGLOCATION="/usr/local/sbin/portscan-protection.conf"
 CRONLOCATION="/etc/cron.d/portscan-protection"
 SYSTEMDSERVICE="/etc/systemd/system/portscan-protection.service"
@@ -235,6 +237,93 @@ WHITELIST()
 	[ "$FOUND" != "1" ] && echo "nano, vi or vim is not found. Edit manually the whitelist: $WHITELISTLOCATION"
 }
 
+BLACKLIST()
+{
+	[ ! -f "$BLACKLISTLOCATION" ] && printf "# This file is part of $SCRIPTNAME\n# Add one IP per line to this file. These IP addresses will always be blocked (e.g. known botnet/attacker IPs). Note: Only IPv4 addresses are supported.\n# More info on GitHub: https://github.com/Feriman22/portscan-protection\n# If you found it useful, please donate via PayPal: https://paypal.me/BajzaFerenc\n\n# Thank you!\n\n" > $BLACKLISTLOCATION
+	for i in nano vi vim; do
+		if command -v $i > /dev/null; then
+			$i "$BLACKLISTLOCATION"
+			"$SCRIPTLOCATION" --cron
+			printf "Blacklist has been activated if the file has been modified.\n" ; FOUND="1"
+			break
+		fi
+	done
+	[ "$FOUND" != "1" ] && echo "nano, vi or vim is not found. Edit manually the blacklist: $BLACKLISTLOCATION"
+}
+
+GET_BLACKLIST_IPS()
+{
+	# Prints the validated, de-duplicated list of IPv4 addresses from the blacklist file (one per line, sorted).
+	# Silently skips comments, blank lines, surrounding whitespace, CRLF line endings, invalid/non-IPv4 entries,
+	# and never returns 127.0.0.1 or 0.0.0.0 (to avoid ever accidentally blocking loopback / "any address").
+	[ ! -f "$BLACKLISTLOCATION" ] && return
+	[ ! -r "$BLACKLISTLOCATION" ] && return
+	grep -v "^#\|^[[:space:]]*$" "$BLACKLISTLOCATION" 2>/dev/null | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | while read -r IP; do
+		if [[ "$IP" =~ ^(([1-9]?[0-9]|1[0-9][0-9]|2([0-4][0-9]|5[0-5]))\.){3}([1-9]?[0-9]|1[0-9][0-9]|2([0-4][0-9]|5[0-5]))$ ]] && [ "$IP" != "127.0.0.1" ] && [ "$IP" != "0.0.0.0" ]; then
+			echo "$IP"
+		fi
+	done | sort -u
+}
+
+SYNC_BLACKLIST_IPTABLES()
+{
+	# Re-applies blacklist DROP rules only if the validated IP set actually changed since the last run.
+	# Missing or unreadable blacklist file -> do nothing (never wipe existing protection due to a permissions glitch).
+	[ ! -f "$BLACKLISTLOCATION" ] && return
+	[ ! -r "$BLACKLISTLOCATION" ] && return
+
+	NEWLIST=$(GET_BLACKLIST_IPS)
+	OLDLIST=""
+	[ -f "$BLACKLISTAPPLIEDLOCATION" ] && OLDLIST=$(cat "$BLACKLISTAPPLIEDLOCATION")
+
+	[ "$NEWLIST" == "$OLDLIST" ] && return
+
+	# Drop the rules for IPs that were removed from the list
+	comm -23 <(echo "$OLDLIST") <(echo "$NEWLIST") 2>/dev/null | while read -r IP; do
+		[ -n "$IP" ] && iptables -D INPUT -s "$IP" -j DROP 2>/dev/null
+	done
+
+	# Add the rules for newly added IPs
+	comm -13 <(echo "$OLDLIST") <(echo "$NEWLIST") 2>/dev/null | while read -r IP; do
+		[ -n "$IP" ] && [ $(iptables -S | grep -cF -- "-A INPUT -s $IP/32 -j DROP") -lt 1 ] && iptables -I INPUT -s "$IP" -j DROP
+	done
+
+	echo "$NEWLIST" > "$BLACKLISTAPPLIEDLOCATION"
+}
+
+SYNC_BLACKLIST_NFTABLES()
+{
+	# nftables equivalent of SYNC_BLACKLIST_IPTABLES - uses a dedicated set + a single drop rule,
+	# and re-syncs the set contents only when the validated IP set has actually changed.
+	[ ! -f "$BLACKLISTLOCATION" ] && return
+	[ ! -r "$BLACKLISTLOCATION" ] && return
+
+	NEWLIST=$(GET_BLACKLIST_IPS)
+	OLDLIST=""
+	[ -f "$BLACKLISTAPPLIEDLOCATION" ] && OLDLIST=$(cat "$BLACKLISTAPPLIEDLOCATION")
+
+	[ "$NEWLIST" == "$OLDLIST" ] && return
+
+	# Create the blacklist set if it doesn't exist
+	if ! nft list set inet portscan_protection blacklist > /dev/null 2>&1; then
+		nft add set inet portscan_protection blacklist { type ipv4_addr\; }
+	fi
+
+	# Add the drop rule once, at the very front of the chain (whitelist's own "insert at front"
+	# call happens right after this one, so it ends up above this rule - whitelist always wins)
+	if ! nft list chain inet portscan_protection input 2>/dev/null | grep -q "@blacklist drop"; then
+		nft insert rule inet portscan_protection input ip saddr @blacklist drop
+	fi
+
+	# Re-sync set contents: flush then repopulate from the current validated list
+	nft flush set inet portscan_protection blacklist 2>/dev/null
+	echo "$NEWLIST" | while read -r IP; do
+		[ -n "$IP" ] && nft add element inet portscan_protection blacklist { $IP } 2>/dev/null
+	done
+
+	echo "$NEWLIST" > "$BLACKLISTAPPLIEDLOCATION"
+}
+
 SETSSHPORT()
 {
 	printf "Current SSH port: ${YL}$SSHPORT${NC}\n"
@@ -436,9 +525,13 @@ if [ "$1" == '--cron' ]; then
 	if [ "$FIREWALL_BACKEND" == "nftables" ]; then
 		# nftables setup
 		SETUP_NFTABLES
+		SYNC_BLACKLIST_NFTABLES
 		ADD_WHITELIST_NFTABLES
 	else
 		# iptables setup (original behavior)
+		# Sync Blacklist IPs first, so Whitelist (added right after) ends up taking priority in the chain
+		SYNC_BLACKLIST_IPTABLES
+
 		# Add Whitelist IPs if any
 		if [ -f $WHITELISTLOCATION ]; then
 			while read WHILELISTIP; do
@@ -476,7 +569,7 @@ if [ "$1" == "-i" ] || [ "$1" == "-u" ] || [ "$1" == "-v" ] || [ "$1" == "--inst
 	OPT="$1" && OPTL="$1" && ARG="YES"
 else
 	PS3='Please enter your choice: '
-	[ -f "$SCRIPTLOCATION" ] && options=("Verify" "Edit Whitelist" "Set SSH Port" "Toggle Auto-Update" "Update from GitHub" "Reinstall" "Uninstall" "Quit")
+	[ -f "$SCRIPTLOCATION" ] && options=("Verify" "Edit Whitelist" "Edit Blacklist" "Set SSH Port" "Toggle Auto-Update" "Update from GitHub" "Reinstall" "Uninstall" "Quit")
 	[ ! -f "$SCRIPTLOCATION" ] && options=("Install" "Verify" "Quit")
 	select opt in "${options[@]}"
 	do
@@ -492,6 +585,9 @@ else
 				;;
 			"Edit Whitelist")
 				WHITELIST ; break
+				;;
+			"Edit Blacklist")
+				BLACKLIST ; break
 				;;
 			"Set SSH Port")
 				SETSSHPORT ; break
@@ -623,6 +719,14 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 			printf "Whitelist removed from iptables if any. ${GR}OK.${NC}\n"
 		fi
 
+		# Remove Blacklist rules
+		if [ -f "$BLACKLISTAPPLIEDLOCATION" ]; then
+			while read BLACKLISTIP; do
+				[ -n "$BLACKLISTIP" ] && iptables -D INPUT -s $BLACKLISTIP -j DROP 2>/dev/null
+			done < "$BLACKLISTAPPLIEDLOCATION"
+			printf "Blacklist removed from iptables if any. ${GR}OK.${NC}\n"
+		fi
+
 		# Remove custom SSH port rule
 		if [ "$SSHPORT" != "22" ]; then
 			iptables -D INPUT -p tcp --dport $SSHPORT -j ACCEPT 2>/dev/null
@@ -642,6 +746,10 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 
 	# Remove Whitelist
 	[ -f "$WHITELISTLOCATION" ] && rm -f "$WHITELISTLOCATION" && printf "Whitelist has been removed. ${GR}OK.${NC}\n" || printf "Whitelist not found. ${GR}OK.${NC}\n"
+
+	# Remove Blacklist
+	[ -f "$BLACKLISTLOCATION" ] && rm -f "$BLACKLISTLOCATION" && printf "Blacklist has been removed. ${GR}OK.${NC}\n" || printf "Blacklist not found. ${GR}OK.${NC}\n"
+	[ -f "$BLACKLISTAPPLIEDLOCATION" ] && rm -f "$BLACKLISTAPPLIEDLOCATION"
 
 	printf "\nIf the $SCRIPTNAME removed accidently, run this below command to install it again:\n"
 	printf "curl -s $GITHUBRAW | sudo bash /dev/stdin -i\n"
@@ -728,6 +836,16 @@ if [ "$OPT" == '-v' ] || [ "$OPTL" == '--verify' ]; then
 				printf "$WHILELISTIP is ${RED}not valid${NC} IPv4 address in the Whitelist and it will be ignored. May you have to fix it by choose Edit Whitelist from the menu.\n"
 			fi
 		done < <(grep -v "^#\|^$" $WHITELISTLOCATION)
+	fi
+
+	if [ -f $BLACKLISTLOCATION ]; then
+		while read BLACKLISTIP; do
+			# Validate IP address
+			if [[ ! "$BLACKLISTIP" =~ ^(([1-9]?[0-9]|1[0-9][0-9]|2([0-4][0-9]|5[0-5]))\.){3}([1-9]?[0-9]|1[0-9][0-9]|2([0-4][0-9]|5[0-5]))$ ]]; then
+				printf "$BLACKLISTIP is ${RED}not valid${NC} IPv4 address in the Blacklist and it will be ignored. May you have to fix it by choose Edit Blacklist from the menu.\n"
+			fi
+		done < <(grep -v "^#\|^$" $BLACKLISTLOCATION | tr -d '\r')
+		printf "Blacklist contains ${YL}$(GET_BLACKLIST_IPS | wc -l)${NC} valid IP(s) currently applied.\n"
 	fi
 fi
 
