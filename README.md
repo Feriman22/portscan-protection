@@ -183,6 +183,12 @@ This version is fully backward compatible with previous installations:
 - Configuration file is created automatically on first run
 - The new blacklist feature is fully optional and has no effect on existing installations until you use the `Edit Blacklist` menu option
 
+## Roadmap
+
+Planned/upcoming features:
+
+- **CIDR range support** for the blacklist (e.g. `203.0.113.0/24`) - block an entire IP range with a single entry, instead of listing individual IPs one by one
+
 ## Changelog
 
 >05-08-2026
