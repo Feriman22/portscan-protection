@@ -271,6 +271,12 @@ Planned/upcoming features:
 >13-04-2020
 - Initial release
 
+## Supporters
+
+Thanks to the following people for supporting this project:
+
+- **Aldas** - $200 via PayPal, sponsoring development of the Blacklist feature
+
 ## Do not forget
 
 If you found my work helpful, I would greatly appreciate it if you could make a **[donation through PayPal](https://paypal.me/BajzaFerenc)** to support my efforts in improving and fixing bugs or creating more awesome scripts. Thank you!
