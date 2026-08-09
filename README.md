@@ -3,7 +3,7 @@
 ## Description
 Hackers and unskilled script-users often scan servers for open ports. If they find one, such as your SSH port, they will attempt to crack it. This script helps protect Linux systems with built-in firewall protection (iptables or nftables) from portscan attacks by automatically blocking the IP address of any attacker who attempts to access ports too quickly.
 
-<img width="1035" height="752" alt="portscan-protection-install" src="https://github.com/user-attachments/assets/a9a14502-cb6d-436e-8e28-5433f1873629" />
+<img width="1029" height="762" alt="image" src="https://github.com/user-attachments/assets/72b1e31e-3c6a-46e9-b31b-45fcb0f7c367" />
 
 *The installation is simple and quick*
 
@@ -14,7 +14,7 @@ Hackers and unskilled script-users often scan servers for open ports. If they fi
 - **Systemd & Cron support** - Uses systemd if available, falls back to cron
 - **Custom SSH port support** - Protects your custom SSH port from being blocked
 - **Whitelist support** - Never block specific IP addresses
-- **Blacklist support** - Always block specific IP addresses (e.g. known attacker IPs), auto-reapplies when the list changes
+- **Blacklist support** - Always block specific IP addresses or CIDR ranges (e.g. known attacker IPs or entire subnets), auto-reapplies when the list changes, scales to tens of thousands of entries
 - **Auto-update** - Automatically updates itself (can be easily toggled on/off)
 - **Easy reinstall** - Reinstall with a single command
 
@@ -62,7 +62,7 @@ The `Reinstall` process performs a complete uninstall followed by a fresh instal
 
 The `Edit Whitelist` option allows adding IPv4 addresses to the whitelist. Add one IP per line to this file. These IP addresses will never be blocked. Note: Only IPv4 addresses are supported.
 
-The `Edit Blacklist` option allows adding IPv4 addresses to the blacklist. Add one IP per line to this file. These IP addresses will always be blocked (e.g. known botnet/attacker IPs). The rules are automatically re-applied whenever the file changes - immediately if edited through this menu option, or within the auto-update check cycle if edited directly. Duplicate entries and invalid lines are ignored automatically. Note: Only IPv4 addresses are supported. If the whitelist and blacklist ever contain the same IP, the whitelist always takes priority.
+The `Edit Blacklist` option allows adding IPv4 addresses or CIDR ranges to the blacklist. Add one entry per line to this file - either a single IP (e.g. `203.0.113.5`) or a CIDR range (e.g. `203.0.113.0/24`). These will always be blocked (e.g. known botnet/attacker IPs, or an entire malicious subnet). The rules are automatically re-applied whenever the file changes - immediately if edited through this menu option, or within the auto-update check cycle if edited directly. Duplicate and invalid entries are ignored automatically, and a `/0` entry (which would match all addresses) is always rejected as a safety guard. Note: Only IPv4 is supported. If the whitelist and blacklist ever contain the same IP, the whitelist always takes priority.
 
 The `Set SSH Port` option allows you to specify a custom SSH port. This ensures your SSH port won't be blocked even if you're using a non-standard port.
 
@@ -187,11 +187,17 @@ This version is fully backward compatible with previous installations:
 
 Planned/upcoming features:
 
-- **CIDR range support** for the blacklist (e.g. `203.0.113.0/24`) - block an entire IP range with a single entry, instead of listing individual IPs one by one
+- [x] **CIDR range support** for the blacklist (e.g. `203.0.113.0/24`) - block an entire IP range with a single entry, instead of listing individual IPs one by one - shipped, see changelog
 
 ## Changelog
 
->05-08-2026
+>09-08-2026
+- **NEW:** Blacklist now supports CIDR ranges (e.g. `203.0.113.0/24`) alongside single IPs - handy for blocking an entire cloud provider block or botnet subnet in one entry
+- **Performance:** blacklist enforcement rewritten to scale to tens of thousands of entries - iptables backend now uses a single `ipset` (atomically swapped on update) instead of one firewall rule per entry; nftables backend now applies changes in a single batched transaction instead of one command per entry
+- Fixed a validation bug where the blacklist parser could silently fail on systems where `/usr/bin/awk` is `mawk` (the Debian/Ubuntu default) rather than `gawk`
+- A `/0` entry (which would match all IPv4 addresses) is now always rejected as a safety guard, in addition to the existing loopback/any-address protections
+
+>03-08-2026
 - **NEW:** Blacklist support - permanently block known malicious IPs, one per line, with automatic re-apply whenever the file changes (via the `Edit Blacklist` menu option, or the auto-update check cycle for out-of-band edits)
 - Blacklist entries are validated, de-duplicated, and invalid/unreadable input is safely ignored
 - `Verify` now also reports blacklist validity
