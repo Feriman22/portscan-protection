@@ -1,6 +1,6 @@
 #!/bin/bash
 SCRIPTNAME="Portscan Protection"
-VERSION="05-08-2026"
+VERSION="09-08-2026"
 SCRIPTLOCATION="/usr/local/sbin/portscan-protection.sh"
 WHITELISTLOCATION="/usr/local/sbin/portscan-protection-white.list"
 BLACKLISTLOCATION="/usr/local/sbin/portscan-protection-black.list"
@@ -239,7 +239,7 @@ WHITELIST()
 
 BLACKLIST()
 {
-	[ ! -f "$BLACKLISTLOCATION" ] && printf "# This file is part of $SCRIPTNAME\n# Add one IP per line to this file. These IP addresses will always be blocked (e.g. known botnet/attacker IPs). Note: Only IPv4 addresses are supported.\n# More info on GitHub: https://github.com/Feriman22/portscan-protection\n# If you found it useful, please donate via PayPal: https://paypal.me/BajzaFerenc\n\n# Thank you!\n\n" > $BLACKLISTLOCATION
+	[ ! -f "$BLACKLISTLOCATION" ] && printf "# This file is part of $SCRIPTNAME\n# Add one entry per line to this file. These will always be blocked (e.g. known botnet/attacker IPs). Supports both single IPv4 addresses (e.g. 203.0.113.5) and IPv4 CIDR ranges (e.g. 203.0.113.0/24). Note: Only IPv4 is supported.\n# More info on GitHub: https://github.com/Feriman22/portscan-protection\n# If you found it useful, please donate via PayPal: https://paypal.me/BajzaFerenc\n\n# Thank you!\n\n" > $BLACKLISTLOCATION
 	for i in nano vi vim; do
 		if command -v $i > /dev/null; then
 			$i "$BLACKLISTLOCATION"
@@ -251,62 +251,109 @@ BLACKLIST()
 	[ "$FOUND" != "1" ] && echo "nano, vi or vim is not found. Edit manually the blacklist: $BLACKLISTLOCATION"
 }
 
-GET_BLACKLIST_IPS()
+BLACKLISTIPSETNAME="blacklisted_ips"
+IPSET3="$BLACKLISTIPSETNAME hash:net family inet hashsize 4096 maxelem 131072"
+
+GET_BLACKLIST_ENTRIES()
 {
-	# Prints the validated, de-duplicated list of IPv4 addresses from the blacklist file (one per line, sorted).
-	# Silently skips comments, blank lines, surrounding whitespace, CRLF line endings, invalid/non-IPv4 entries,
-	# and never returns 127.0.0.1 or 0.0.0.0 (to avoid ever accidentally blocking loopback / "any address").
+	# Prints the validated, de-duplicated list of blacklist entries (one per line, sorted).
+	# Accepts plain IPv4 addresses AND IPv4 CIDR ranges (e.g. 203.0.113.0/24).
+	# Silently skips comments, blank lines, surrounding whitespace, CRLF line endings, and invalid entries.
+	# Safety: never returns 0.0.0.0, 127.0.0.1, any 127.x.x.x entry, or a /0 range (which would match
+	# every IPv4 address and effectively block all traffic).
+	# Uses a single-pass awk filter (instead of a bash loop) so this stays fast at tens of thousands
+	# of entries - important since blacklists built from CIDR feeds can get large quickly.
 	[ ! -f "$BLACKLISTLOCATION" ] && return
 	[ ! -r "$BLACKLISTLOCATION" ] && return
-	grep -v "^#\|^[[:space:]]*$" "$BLACKLISTLOCATION" 2>/dev/null | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | while read -r IP; do
-		if [[ "$IP" =~ ^(([1-9]?[0-9]|1[0-9][0-9]|2([0-4][0-9]|5[0-5]))\.){3}([1-9]?[0-9]|1[0-9][0-9]|2([0-4][0-9]|5[0-5]))$ ]] && [ "$IP" != "127.0.0.1" ] && [ "$IP" != "0.0.0.0" ]; then
-			echo "$IP"
-		fi
-	done | sort -u
+	awk '
+	{
+		gsub(/\r/, "")
+		sub(/^[ \t]+/, ""); sub(/[ \t]+$/, "")
+		if ($0 == "" || $0 ~ /^#/) next
+		if ($0 !~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+(\/[0-9]+)?$/) next
+		split($0, whole, "/")
+		ip = whole[1]; prefix = whole[2]
+		if (prefix != "" && (prefix == "0" || prefix+0 > 32)) next
+		n = split(ip, oct, ".")
+		if (n != 4) next
+		valid = 1
+		for (i = 1; i <= 4; i++) { if (oct[i]+0 > 255) valid = 0 }
+		if (!valid) next
+		if (ip == "0.0.0.0") next
+		if (oct[1] == "127") next
+		print $0
+	}
+	' "$BLACKLISTLOCATION" | sort -u
 }
 
 SYNC_BLACKLIST_IPTABLES()
 {
-	# Re-applies blacklist DROP rules only if the validated IP set actually changed since the last run.
+	# Applies the blacklist via a single ipset (hash:net, supports both plain IPs and CIDR ranges)
+	# matched by one static iptables rule, instead of one iptables rule per entry. The set is rebuilt
+	# in a temp set and atomically swapped in - this keeps the sync fast and correct even at
+	# tens of thousands of entries, and avoids ever leaving the live set half-updated.
 	# Missing or unreadable blacklist file -> do nothing (never wipe existing protection due to a permissions glitch).
 	[ ! -f "$BLACKLISTLOCATION" ] && return
 	[ ! -r "$BLACKLISTLOCATION" ] && return
 
-	NEWLIST=$(GET_BLACKLIST_IPS)
+	NEWLIST=$(GET_BLACKLIST_ENTRIES)
 	OLDLIST=""
 	[ -f "$BLACKLISTAPPLIEDLOCATION" ] && OLDLIST=$(cat "$BLACKLISTAPPLIEDLOCATION")
 
 	[ "$NEWLIST" == "$OLDLIST" ] && return
 
-	# Drop the rules for IPs that were removed from the list
-	comm -23 <(echo "$OLDLIST") <(echo "$NEWLIST") 2>/dev/null | while read -r IP; do
-		[ -n "$IP" ] && iptables -D INPUT -s "$IP" -j DROP 2>/dev/null
-	done
+	# Make sure the base ipset + firewall rule exist (idempotent, only really does anything once)
+	ipset list -n 2>/dev/null | grep -qx "$BLACKLISTIPSETNAME" || ipset create $IPSET3
+	if [ $(iptables -S INPUT 2>/dev/null | grep -c -- "-m set --match-set $BLACKLISTIPSETNAME src -j DROP") -lt 1 ]; then
+		iptables -I INPUT -m set --match-set "$BLACKLISTIPSETNAME" src -j DROP
+	fi
 
-	# Add the rules for newly added IPs
-	comm -13 <(echo "$OLDLIST") <(echo "$NEWLIST") 2>/dev/null | while read -r IP; do
-		[ -n "$IP" ] && [ $(iptables -S | grep -cF -- "-A INPUT -s $IP/32 -j DROP") -lt 1 ] && iptables -I INPUT -s "$IP" -j DROP
-	done
+	# Build a temp set with the current entries in one bulk restore, then atomically swap it in
+	TMPSETNAME="${BLACKLISTIPSETNAME}_tmp"
+	ipset destroy "$TMPSETNAME" 2>/dev/null
+	ipset create "$TMPSETNAME" hash:net family inet hashsize 4096 maxelem 131072
+
+	if [ -n "$NEWLIST" ]; then
+		echo "$NEWLIST" | awk -v s="$TMPSETNAME" '{print "add " s " " $0}' | ipset restore -exist
+	fi
+
+	ipset swap "$BLACKLISTIPSETNAME" "$TMPSETNAME"
+	ipset destroy "$TMPSETNAME"
 
 	echo "$NEWLIST" > "$BLACKLISTAPPLIEDLOCATION"
 }
 
 SYNC_BLACKLIST_NFTABLES()
 {
-	# nftables equivalent of SYNC_BLACKLIST_IPTABLES - uses a dedicated set + a single drop rule,
-	# and re-syncs the set contents only when the validated IP set has actually changed.
+	# nftables equivalent of SYNC_BLACKLIST_IPTABLES - uses a dedicated interval set (so it can hold
+	# both plain IPs and CIDR ranges) + a single drop rule, refreshed in one batched nft transaction
+	# instead of one nft call per entry, to stay fast at tens of thousands of entries.
 	[ ! -f "$BLACKLISTLOCATION" ] && return
 	[ ! -r "$BLACKLISTLOCATION" ] && return
 
-	NEWLIST=$(GET_BLACKLIST_IPS)
+	NEWLIST=$(GET_BLACKLIST_ENTRIES)
 	OLDLIST=""
 	[ -f "$BLACKLISTAPPLIEDLOCATION" ] && OLDLIST=$(cat "$BLACKLISTAPPLIEDLOCATION")
 
-	[ "$NEWLIST" == "$OLDLIST" ] && return
+	MIGRATED="0"
+	# One-time migration: earlier versions created the set without interval support (no CIDR ranges).
+	# If we find that older set, remove the rule referencing it and the set itself, so they get
+	# recreated below with CIDR support.
+	if nft list set inet portscan_protection blacklist > /dev/null 2>&1 && ! nft list set inet portscan_protection blacklist 2>/dev/null | grep -q "flags interval"; then
+		RULEHANDLE=$(nft -a list chain inet portscan_protection input 2>/dev/null | grep "@blacklist drop" | grep -oE 'handle [0-9]+' | awk '{print $2}')
+		[ -n "$RULEHANDLE" ] && nft delete rule inet portscan_protection input handle "$RULEHANDLE" 2>/dev/null
+		nft delete set inet portscan_protection blacklist 2>/dev/null
+		MIGRATED="1"
+	fi
 
-	# Create the blacklist set if it doesn't exist
+	if [ "$NEWLIST" == "$OLDLIST" ] && [ "$MIGRATED" == "0" ]; then
+		return
+	fi
+
+	# Create the blacklist set if it doesn't exist (interval + auto-merge so CIDR ranges work and
+	# adjacent/overlapping entries get merged automatically)
 	if ! nft list set inet portscan_protection blacklist > /dev/null 2>&1; then
-		nft add set inet portscan_protection blacklist { type ipv4_addr\; }
+		nft add set inet portscan_protection blacklist { type ipv4_addr\; flags interval, auto-merge\; }
 	fi
 
 	# Add the drop rule once, at the very front of the chain (whitelist's own "insert at front"
@@ -315,11 +362,15 @@ SYNC_BLACKLIST_NFTABLES()
 		nft insert rule inet portscan_protection input ip saddr @blacklist drop
 	fi
 
-	# Re-sync set contents: flush then repopulate from the current validated list
-	nft flush set inet portscan_protection blacklist 2>/dev/null
-	echo "$NEWLIST" | while read -r IP; do
-		[ -n "$IP" ] && nft add element inet portscan_protection blacklist { $IP } 2>/dev/null
-	done
+	# Re-sync set contents in a single batched transaction (flush + bulk add), instead of one
+	# nft process per entry - this is what keeps large/CIDR lists fast to apply
+	NFTBATCHFILE=$(mktemp)
+	{
+		echo "flush set inet portscan_protection blacklist"
+		[ -n "$NEWLIST" ] && echo "$NEWLIST" | awk '{printf "add element inet portscan_protection blacklist { %s }\n", $0}'
+	} > "$NFTBATCHFILE"
+	nft -f "$NFTBATCHFILE"
+	rm -f "$NFTBATCHFILE"
 
 	echo "$NEWLIST" > "$BLACKLISTAPPLIEDLOCATION"
 }
@@ -719,13 +770,9 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 			printf "Whitelist removed from iptables if any. ${GR}OK.${NC}\n"
 		fi
 
-		# Remove Blacklist rules
-		if [ -f "$BLACKLISTAPPLIEDLOCATION" ]; then
-			while read BLACKLISTIP; do
-				[ -n "$BLACKLISTIP" ] && iptables -D INPUT -s $BLACKLISTIP -j DROP 2>/dev/null
-			done < "$BLACKLISTAPPLIEDLOCATION"
-			printf "Blacklist removed from iptables if any. ${GR}OK.${NC}\n"
-		fi
+		# Remove Blacklist rule (single ipset-match rule, regardless of how many entries it holds)
+		iptables -D INPUT -m set --match-set "$BLACKLISTIPSETNAME" src -j DROP 2>/dev/null
+		printf "Blacklist rule removed from iptables if any. ${GR}OK.${NC}\n"
 
 		# Remove custom SSH port rule
 		if [ "$SSHPORT" != "22" ]; then
@@ -733,7 +780,7 @@ if [ "$OPT" == '-u' ] || [ "$OPTL" == '--uninstall' ]; then
 		fi
 
 		# Remove ipset rules
-		for IPSETRULE in scanned_ports port_scanners; do
+		for IPSETRULE in scanned_ports port_scanners "$BLACKLISTIPSETNAME" "${BLACKLISTIPSETNAME}_tmp"; do
 			if ipset list | grep -q "$IPSETRULE"; then
 				sleep 1
 				ipset destroy $IPSETRULE
@@ -840,12 +887,12 @@ if [ "$OPT" == '-v' ] || [ "$OPTL" == '--verify' ]; then
 
 	if [ -f $BLACKLISTLOCATION ]; then
 		while read BLACKLISTIP; do
-			# Validate IP address
-			if [[ ! "$BLACKLISTIP" =~ ^(([1-9]?[0-9]|1[0-9][0-9]|2([0-4][0-9]|5[0-5]))\.){3}([1-9]?[0-9]|1[0-9][0-9]|2([0-4][0-9]|5[0-5]))$ ]]; then
-				printf "$BLACKLISTIP is ${RED}not valid${NC} IPv4 address in the Blacklist and it will be ignored. May you have to fix it by choose Edit Blacklist from the menu.\n"
+			# Validate IP address or CIDR range (e.g. 203.0.113.0/24)
+			if [[ ! "$BLACKLISTIP" =~ ^(([1-9]?[0-9]|1[0-9][0-9]|2([0-4][0-9]|5[0-5]))\.){3}([1-9]?[0-9]|1[0-9][0-9]|2([0-4][0-9]|5[0-5]))(/([1-9]|[12][0-9]|3[0-2]))?$ ]]; then
+				printf "$BLACKLISTIP is ${RED}not valid${NC} IPv4 address/CIDR range in the Blacklist and it will be ignored. May you have to fix it by choose Edit Blacklist from the menu.\n"
 			fi
 		done < <(grep -v "^#\|^$" $BLACKLISTLOCATION | tr -d '\r')
-		printf "Blacklist contains ${YL}$(GET_BLACKLIST_IPS | wc -l)${NC} valid IP(s) currently applied.\n"
+		printf "Blacklist contains ${YL}$(GET_BLACKLIST_ENTRIES | wc -l)${NC} valid entry/entries currently applied.\n"
 	fi
 fi
 
