@@ -1,6 +1,6 @@
 #!/bin/bash
 SCRIPTNAME="Portscan Protection"
-VERSION="09-08-2026"
+VERSION="10-08-2026"
 SCRIPTLOCATION="/usr/local/sbin/portscan-protection.sh"
 WHITELISTLOCATION="/usr/local/sbin/portscan-protection-white.list"
 BLACKLISTLOCATION="/usr/local/sbin/portscan-protection-black.list"
@@ -300,7 +300,15 @@ SYNC_BLACKLIST_IPTABLES()
 	OLDLIST=""
 	[ -f "$BLACKLISTAPPLIEDLOCATION" ] && OLDLIST=$(cat "$BLACKLISTAPPLIEDLOCATION")
 
-	[ "$NEWLIST" == "$OLDLIST" ] && return
+	# Skip only if the entries are unchanged AND the live ipset + rule already exist.
+	# File content alone isn't enough to decide this: after a reboot, ipset/iptables state
+	# resets even though the blacklist file itself didn't change, so we must also check
+	# what's actually live before trusting the "nothing to do" shortcut.
+	if [ "$NEWLIST" == "$OLDLIST" ]; then
+		if ipset list -n 2>/dev/null | grep -qx "$BLACKLISTIPSETNAME" && [ $(iptables -S INPUT 2>/dev/null | grep -c -- "-m set --match-set $BLACKLISTIPSETNAME src -j DROP") -ge 1 ]; then
+			return
+		fi
+	fi
 
 	# Make sure the base ipset + firewall rule exist (idempotent, only really does anything once)
 	ipset list -n 2>/dev/null | grep -qx "$BLACKLISTIPSETNAME" || ipset create $IPSET3
@@ -347,7 +355,12 @@ SYNC_BLACKLIST_NFTABLES()
 	fi
 
 	if [ "$NEWLIST" == "$OLDLIST" ] && [ "$MIGRATED" == "0" ]; then
-		return
+		# Skip only if the live set + rule already exist. File content alone isn't enough:
+		# after a reboot, nftables state resets even though the blacklist file itself
+		# didn't change, so we must also check what's actually live before skipping.
+		if nft list set inet portscan_protection blacklist > /dev/null 2>&1 && nft list chain inet portscan_protection input 2>/dev/null | grep -q "@blacklist drop"; then
+			return
+		fi
 	fi
 
 	# Create the blacklist set if it doesn't exist (interval + auto-merge so CIDR ranges work and
@@ -808,14 +821,41 @@ fi
 
 if [ "$OPT" == '-r' ] || [ "$OPTL" == '--reinstall' ]; then
 	printf "Starting ${YL}reinstall${NC} process...\n\n"
-	
+
+	# Back up whitelist/blacklist/config before uninstalling, so a reinstall no longer wipes them.
+	# (The blacklist "applied state" tracking file is deliberately NOT backed up - it must start
+	# fresh so the next sync run correctly rebuilds the actual firewall rules from the restored file,
+	# instead of wrongly assuming the rules are already live.)
+	REINSTALLBACKUPDIR=$(mktemp -d)
+	[ -f "$WHITELISTLOCATION" ] && cp "$WHITELISTLOCATION" "$REINSTALLBACKUPDIR/whitelist" 2>/dev/null
+	[ -f "$BLACKLISTLOCATION" ] && cp "$BLACKLISTLOCATION" "$REINSTALLBACKUPDIR/blacklist" 2>/dev/null
+	[ -f "$CONFIGLOCATION" ] && cp "$CONFIGLOCATION" "$REINSTALLBACKUPDIR/config" 2>/dev/null
+
 	# Run uninstall silently
 	"$0" -u
-	
+
 	printf "\n--- Uninstall complete, starting install ---\n\n"
-	
+
 	# Run install
 	"$0" -i
+
+	# Restore whitelist/blacklist/config if we had them
+	if [ -f "$REINSTALLBACKUPDIR/whitelist" ]; then
+		cp "$REINSTALLBACKUPDIR/whitelist" "$WHITELISTLOCATION"
+		printf "Whitelist restored. ${GR}OK.${NC}\n"
+	fi
+	if [ -f "$REINSTALLBACKUPDIR/blacklist" ]; then
+		cp "$REINSTALLBACKUPDIR/blacklist" "$BLACKLISTLOCATION"
+		printf "Blacklist restored. ${GR}OK.${NC}\n"
+	fi
+	if [ -f "$REINSTALLBACKUPDIR/config" ]; then
+		cp "$REINSTALLBACKUPDIR/config" "$CONFIGLOCATION"
+		printf "Configuration restored. ${GR}OK.${NC}\n"
+	fi
+	rm -rf "$REINSTALLBACKUPDIR"
+
+	# Re-apply firewall rules now that the restored whitelist/blacklist/config are back in place
+	"$SCRIPTLOCATION" --cron
 fi
 
 ##
