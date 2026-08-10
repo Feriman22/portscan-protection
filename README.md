@@ -3,7 +3,7 @@
 ## Description
 Hackers and unskilled script-users often scan servers for open ports. If they find one, such as your SSH port, they will attempt to crack it. This script helps protect Linux systems with built-in firewall protection (iptables or nftables) from portscan attacks by automatically blocking the IP address of any attacker who attempts to access ports too quickly.
 
-<img width="1029" height="762" alt="image" src="https://github.com/user-attachments/assets/72b1e31e-3c6a-46e9-b31b-45fcb0f7c367" />
+<img width="1199" height="731" alt="portscan-protection-install" src="https://github.com/user-attachments/assets/4fe9b31d-2413-4f92-991a-916558143725" />
 
 *The installation is simple and quick*
 
@@ -58,7 +58,7 @@ The `Install` process copies the script to the */usr/local/sbin* folder and then
 The `Uninstall` process removes the script from the */usr/local/sbin* folder, removes the systemd service or crontab entry, removes the configuration file, removes the whitelist and blacklist files, and deletes all firewall rules.
 **WARNING!** After this step, you can no longer run the script from the */usr/local/sbin* folder!
 
-The `Reinstall` process performs a complete uninstall followed by a fresh install. Useful for fixing issues or resetting configuration. **Note:** since it runs a full uninstall first, it also removes your whitelist, blacklist, and SSH port setting - back them up first if you want to keep them. To pick up a new systemd timer interval without losing your configuration, edit `/etc/systemd/system/portscan-protection.timer` directly instead, then run `sudo systemctl daemon-reload`.
+The `Reinstall` process performs a complete uninstall followed by a fresh install. Useful for fixing issues. Your whitelist, blacklist, and SSH port setting are automatically backed up before the uninstall step and restored afterward, so they survive a reinstall.
 
 The `Edit Whitelist` option allows adding IPv4 addresses to the whitelist. Add one IP per line to this file. These IP addresses will never be blocked. Note: Only IPv4 addresses are supported.
 
@@ -190,6 +190,10 @@ Planned/upcoming features:
 - [x] **CIDR range support** for the blacklist (e.g. `203.0.113.0/24`) - block an entire IP range with a single entry, instead of listing individual IPs one by one - shipped, see changelog
 
 ## Changelog
+
+>10-08-2026
+- **Fix:** `Reinstall` no longer wipes your whitelist, blacklist, and SSH port/config settings - they're now automatically backed up before the uninstall step and restored afterward, then firewall rules are re-applied. Previously this was only documented as a risk to be aware of; now it just works safely.
+- **Fix:** blacklist protection could silently fail to re-apply after a reboot if the blacklist file itself hadn't changed since the last run - the sync logic now also verifies the live ipset/nftables state before deciding there's nothing to do, so it self-heals after a reboot instead of relying on the blacklist file changing to trigger a re-apply
 
 >09-08-2026
 - **NEW:** Blacklist now supports CIDR ranges (e.g. `203.0.113.0/24`) alongside single IPs - handy for blocking an entire cloud provider block or botnet subnet in one entry
