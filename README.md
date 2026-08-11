@@ -201,7 +201,7 @@ Planned/upcoming features:
 - Fixed a validation bug where the blacklist parser could silently fail on systems where `/usr/bin/awk` is `mawk` (the Debian/Ubuntu default) rather than `gawk`
 - A `/0` entry (which would match all IPv4 addresses) is now always rejected as a safety guard, in addition to the existing loopback/any-address protections
 
->03-08-2026
+>05-08-2026
 - **NEW:** Blacklist support - permanently block known malicious IPs, one per line, with automatic re-apply whenever the file changes (via the `Edit Blacklist` menu option, or the auto-update check cycle for out-of-band edits)
 - Blacklist entries are validated, de-duplicated, and invalid/unreadable input is safely ignored
 - `Verify` now also reports blacklist validity
