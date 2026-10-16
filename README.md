@@ -33,6 +33,8 @@ Hackers and unskilled script-users often scan servers for open ports. If they fi
 2. **Install Portscan Protection directly from GitHub:**
 >*curl -s https://raw.githubusercontent.com/Feriman22/portscan-protection/master/portscan-protection.sh | sudo bash /dev/stdin -i*
 
+> **Support the project:** Portscan Protection is free and maintained in my spare time. If it protects your server, please consider **[supporting it via PayPal](https://paypal.me/BajzaFerenc)**. Supporters directly fund new features, for example the Blacklist (see [Supporters](#supporters)).
+
 If you run it without argument, you have several options:
 
 **Before installation:**
@@ -77,6 +79,7 @@ The `Verify` process checks:
 - Active firewall rules
 - Whitelist validity
 - Blacklist validity
+- Blocking statistics: the number of currently blocked port scanner IPs, plus the packets dropped from them on the iptables backend (shown only when something has been blocked)
 
 The `Update from GitHub` process updates the installed script. You cannot update it before the installation!
 
@@ -191,13 +194,26 @@ Planned/upcoming features:
 
 ## Changelog
 
+>16-10-2026
+- **Fix:** `Reinstall` left the server unprotected when run from the installed script (the menu or `--reinstall`): the uninstall step deleted the script itself, so the install step that followed could not start. Reinstall now downloads a fresh copy before removing anything and installs from that copy, so if GitHub is not reachable it stops without changing anything
+- **Fix:** the Blacklist did not work at all on the nftables backend since 09-08-2026 - the blacklist set was created with a syntax that nftables rejects, so no entries were ever applied (and the one-time migration had already removed the older set). The set is now created correctly, and existing blacklists are re-applied automatically on the next run
+- **Fix:** on existing nftables installs, the Blacklist drop rule could end up above the Whitelist rule, so a whitelisted IP that was also blacklisted got blocked - the Whitelist now always takes priority again, as documented
+- **Fix:** with a custom SSH port on the iptables backend, a duplicate SSH accept rule was added on every run (so the firewall grew by one rule a day) - the check now works, and leftover duplicates are cleaned up automatically
+- **Fix:** `Verify` on the nftables backend reported "You are protected!" whenever the table existed, even if the protection rules inside it were missing - it now checks each required rule individually
+- **Fix:** `Uninstall` matched ipset names as substrings, so a leftover temporary blacklist set (`blacklisted_ips_tmp`) could make it report the main blacklist set as removed when it was not there - set names are now matched exactly
+- **Fix:** the script exited with code `1` after every successful interactive run (menu, `--verify`, `--install` and others) instead of the documented `0`
+- **NEW:** `Verify` now shows blocking statistics - how many port scanner IPs are currently blocked, and on the iptables backend how many packets were dropped from them since the rules were loaded
+- **Performance:** the startup/auto-update run no longer lists every entry of every ipset just to check whether a set exists (only set names are listed now), which matters with large blacklists
+- Added a short support note after a successful install
+- **Code cleanup:** duplicated code merged (whitelist parsing, command checks, list editing, reinstall backup/restore, firewall rule setup), dead branches removed and nested logic flattened, with no change in behavior. The cleanup removed 53 lines of code (7.6%), so despite the new feature and fixes above, the script now has fewer lines of code than the previous release (652 vs. 656, not counting comments and blank lines)
+
 >10-08-2026
-- **Fix:** `Reinstall` no longer wipes your whitelist, blacklist, and SSH port/config settings - they're now automatically backed up before the uninstall step and restored afterward, then firewall rules are re-applied. Previously this was only documented as a risk to be aware of; now it just works safely.
+- **Fix:** `Reinstall` no longer wipes your whitelist, blacklist, and SSH port/config settings - they're now automatically backed up before the uninstall step and restored afterward, then firewall rules are re-applied. Previously this was only documented as a risk to be aware of. Now it just works safely.
 - **Fix:** blacklist protection could silently fail to re-apply after a reboot if the blacklist file itself hadn't changed since the last run - the sync logic now also verifies the live ipset/nftables state before deciding there's nothing to do, so it self-heals after a reboot instead of relying on the blacklist file changing to trigger a re-apply
 
 >09-08-2026
 - **NEW:** Blacklist now supports CIDR ranges (e.g. `203.0.113.0/24`) alongside single IPs - handy for blocking an entire cloud provider block or botnet subnet in one entry
-- **Performance:** blacklist enforcement rewritten to scale to tens of thousands of entries - iptables backend now uses a single `ipset` (atomically swapped on update) instead of one firewall rule per entry; nftables backend now applies changes in a single batched transaction instead of one command per entry
+- **Performance:** blacklist enforcement rewritten to scale to tens of thousands of entries - iptables backend now uses a single `ipset` (atomically swapped on update) instead of one firewall rule per entry, nftables backend now applies changes in a single batched transaction instead of one command per entry
 - Fixed a validation bug where the blacklist parser could silently fail on systems where `/usr/bin/awk` is `mawk` (the Debian/Ubuntu default) rather than `gawk`
 - A `/0` entry (which would match all IPv4 addresses) is now always rejected as a safety guard, in addition to the existing loopback/any-address protections
 
