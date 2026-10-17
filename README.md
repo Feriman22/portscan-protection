@@ -5,7 +5,7 @@ Hackers and unskilled script-users often scan servers for open ports. If they fi
 
 <img width="1400" alt="Portscan Protection install demo" src="portscan-protection-install.gif" />
 
-*The installation is simple and quick*
+*One command, about one second. This is a real, unedited install on Debian.*
 
 ## Features
 
