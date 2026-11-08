@@ -20,6 +20,8 @@ Hackers and unskilled script-users often scan servers for open ports. If they fi
 
 ## Installation
 
+Tested on Debian 13 (trixie) with both iptables and nftables.
+
 1. **Install required packages:**
 - Ubuntu/Debian (iptables):
     - >*sudo apt update && sudo apt install curl iptables ipset -y*
